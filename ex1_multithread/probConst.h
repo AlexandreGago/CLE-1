@@ -14,7 +14,7 @@
 /* Generic parameters */
 
 /** \brief maximum number of producers / consumers */
-#define  N           10
+#define  maxThreads           4
 
 /** \brief maximum capacity of the data transfer region (in number of values that can be stored) */
 #define  K           10
@@ -22,6 +22,6 @@
 /** \brief number of iterations of the life cycle */
 #define  M           10
 
-#define BlockSize 8000
+#define ChunkSize 8000
 
 #endif /* PROBCONST_H_ */

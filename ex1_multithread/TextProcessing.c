@@ -1,65 +1,76 @@
+/**
+ * @file TextProcessing.c
+ * @author Bernardo Kaluza 97521
+ * @author Alexandre Gago 98123
+ * @brief Problem name: Text Processing in Portuguese
+ * @date 2023-03-10
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
-//include threads
-#include <pthread.h>
-#include "fifo.h"
+#include <stdbool.h>
 
-int numThreads = 4;
-int numProducers = 1;
+//! TEMPORATy
+struct Chunk
+{
+    int FileId;
+    int finished;
+    int size;
+    unsigned char *data;
+    
+    int nWords;
+    int nVowels[5];
+};
 
-void getNextChar(char *c, FILE *f);
-char processBuffer(unsigned char *buf, int size);
-void *produce(void *arg);
-void *consume(void *arg);
+//receives a pointer to the buffer
+int getChar(unsigned char *buffer, int *index){
+    unsigned char c = buffer[0];
+    (*index)++;
+    return c;
+}
+
+bool isAlphaNumeric(int c){
+    //a character is alphanumeric if it is a letter or a number
+    //a character is a letter if it is between 65 and 90 or between 97 and 122
+    //a character is a number if it is between 48 and 57
+    return ((65 <= c && c <= 90) || (97 <= c && c <= 122) || (48 <= c && c <= 57));
+}
 
 /**
- * @brief 
+ * @brief Performs the processing of a chunk of text
+ * It is called by the threads and receives a pointer to a FileData struct
+ * The function will process the chunk and count the number of words, and how many words have each vowel
  * 
- * @param argc the number of arguments
- * @param argv  the arguments
- * @return int 
+ * 
+ * @param Chunk Struct that contains the data needed to process the chunk
+ * It will also be used to store the results of the processing.
  */
-int main (int argc, char *argv[]){
-    //create the worker threads and the buffer and wait for them to finish
-    pthread_t *threads = malloc(sizeof(pthread_t) * numThreads);
+void processChunk(struct Chunk *fileChunk){
+    //pointer to index of the buffer
+    int *buffIndex = 0;
 
-    for(int i = 0; i < numProducers; i++){
-        pthread_create(&threads[i], NULL, produce, NULL);
-    }
-    for (int i = numProducers; i < numThreads; i++){
-        pthread_create(&threads[i], NULL, consume, NULL);
-    }
+    bool inWord = false;
+    int nWords = 0;
+    int nVowels[] = {0,0,0,0,0,0};
+    bool vowelInWord[] = {false, false, false, false, false, false};
 
-    for(int i = 0; i < numThreads; i++){
-        pthread_join(threads[i], NULL);
-    }
-    return 0;
-}
+    //loop that will process the chunk
+    while (buffIndex <= fileChunk->size) {
 
-void getNextChar(char *c, FILE *f){
-}
+        //get the number representation of the char
+        int c = getChar(fileChunk->data, &buffIndex);
 
-char processBuffer(unsigned char *buf, int size) {
-}
-
-void *produce(void *arg){
-    while(1){
-        //if the FIFO is not full
-        if (FIFO_isFull() == 0){
-            //read 8k bytes from the file
-            //process the buffer
-            //insert on the FIFO
+        
+        if (!inWord && isAlphaNumeric(c)) {
+            inWord = true;
+            nWords++;
+        } else if (inWord && isSeparation(c)) {
+            inWord = false;
         }
+
     }
-}
-
-void *consume(void *arg){
-    Block *b;
-    //copy a block from the FIFO
-    *b = getBLock();//getVal()
-    //process the block
-    getNextChar(b->data, b->size);
-    //free the block
-    free(b);
-
+    
 }
