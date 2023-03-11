@@ -42,7 +42,12 @@ void *worker(void *ID){
     //malloc the chunk
     struct Chunk *chunk = malloc(sizeof(struct Chunk));
     //malloc the buffer
-    chunk->data = malloc(sizeof(unsigned char) * ChunkSize);
+    //initialize the chunk
+    chunk->data = malloc(sizeof(unsigned char) * CHUNKSIZE);
+    chunk->size = 0;
+    chunk->nWords = 0;
+    chunk->finished = 0;
+    chunk->FileId = -1;
     while(1){
         //get the data from the shared region
         getData(chunk);
@@ -55,9 +60,9 @@ void *worker(void *ID){
         chunk->nWords = 0;
         chunk->finished = 0;
         chunk->FileId = -1;
-        memset(chunk->data, 0, ChunkSize);
-
+        memset(chunk->data, 0, CHUNKSIZE);
     }
+
     free(chunk->data);
     free(chunk);
     

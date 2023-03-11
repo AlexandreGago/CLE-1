@@ -8,11 +8,9 @@
  * 
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
 //! TEMPORARY CHUNK STRUCTURE
 struct Chunk
 {
@@ -83,7 +81,7 @@ int getChar(unsigned char *buffer, int *index){
             return -1;
         }
     }
-    
+    return -1;
 }
 /**
  * @brief Check if a character is a separation or punctuation character
@@ -198,6 +196,7 @@ void processChunk(struct Chunk *fileChunk){
         if (c == -1) {
             //invalid character, skip it
             //!TODO: log error
+            printf("Invalid character found in file %d at position %d", fileChunk->FileId, buffIndex);
             continue;
         }
         //if inside word

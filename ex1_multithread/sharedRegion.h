@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "probConst.h"
+#include <string.h>
 
 /**
  * @brief 
@@ -15,7 +16,7 @@ struct FileData
     int finished;
 
     int nWords;
-    int nVowels[5];
+    int nVowels[6];
 };
 
 /**
@@ -30,7 +31,7 @@ struct Chunk
     unsigned char *data;
     
     int nWords;
-    int nVowels[5];
+    int nVowels[6];
 };
 
 
@@ -40,7 +41,7 @@ struct Chunk
  * @param files 
  * @param numFiles 
  */
-extern void initializeSharedRegion(char* files, int numFiles);
+extern void initializeSharedRegion(char** files, int numFiles);
 
 /**
  * @brief Get the Data object

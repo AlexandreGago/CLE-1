@@ -22,6 +22,6 @@
 /** \brief number of iterations of the life cycle */
 #define  M           10
 
-#define ChunkSize 8000
+#define CHUNKSIZE 10
 
 #endif /* PROBCONST_H_ */
