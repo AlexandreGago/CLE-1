@@ -18,5 +18,13 @@
  */
 extern void processChunk(struct Chunk *fileChunk);
 
+/**
+ * @brief 
+ * 
+ * @param fileData 
+ * @param fileChunk 
+ * @return int 
+ */
+extern int readToChunk(struct FileData *fileData, struct Chunk *fileChunk);
 
 #endif /* TEXT_PROCESSING_H */

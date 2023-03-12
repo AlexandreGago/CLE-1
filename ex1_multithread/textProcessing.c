@@ -11,17 +11,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-//! TEMPORARY CHUNK STRUCTURE
-struct Chunk
-{
-    int FileId;
-    int finished;
-    int size;
-    unsigned char *data;
-    
-    int nWords;
-    int nVowels[6];
-};
+#include "probConst.h"
+#include "sharedRegion.h"
+#include <unistd.h>
+
+
 /**
  * @brief Get the decimal codepoint of the utf 8 character
  * 
@@ -80,7 +74,7 @@ int getChar(unsigned char *buffer, int *index){
             //character is invalid/corrupted
             return -1;
         }
-    }
+    } 
     return -1;
 }
 /**
@@ -187,7 +181,6 @@ void processChunk(struct Chunk *fileChunk){
     int nWords = 0;
     int nVowels[] = {0,0,0,0,0,0};
     bool vowelInWord[] = {false, false, false, false, false, false};
-
     //loop that will process the chunk
     while (buffIndex < fileChunk->size) {
 
@@ -196,7 +189,7 @@ void processChunk(struct Chunk *fileChunk){
         if (c == -1) {
             //invalid character, skip it
             //!TODO: log error
-            printf("Invalid character found in file %d at position %d", fileChunk->FileId, buffIndex);
+            printf("Invalid character found in file %d at position %d \n", fileChunk->FileId, buffIndex);
             continue;
         }
         //if inside word
@@ -240,44 +233,155 @@ void processChunk(struct Chunk *fileChunk){
     fileChunk->finished = 1;
     
 }
-/*//! test function
-change file name to test all rest is automatic
-Might cause leaks
-*/
-// int main(int argc, char *argv[]) {
-    
-//     FILE *fp = fopen("../ex1/dataSet1/text4.txt", "r");
-//     if (fp == NULL) {
-//         printf("Error: Unable to open file!\n");
-//         exit(1);
-//     }
-//     fseek(fp, 0L, SEEK_END);
-//     long filesize = ftell(fp);
-//     rewind(fp);
-//     printf("filesize: %ld \n", filesize);
-    
 
+int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){
+    
+    int n = fread(fileChunk->data, 1, CHUNKSIZE, fileData->file);
+    // printf("Read %d bytes from file %s \n", n, fileData->name);
+    //if error reading file
+    if (n <0){
+        printf("Error reading file %s, ignoring it \n", fileData->name);
+        fileData->finished = 1;
+        fclose(fileData->file);
+    }
+    //if file is at the end we didn't cut words
+    if (feof(fileData->file) || n == 0){
+        printf("Finished reading file %s \n", fileData->name);
+        fileData->finished = 1;
+        fclose(fileData->file);
+        return n;
+    }
+    //if after reading we are at the end of file
+    if (n == CHUNKSIZE) {
+        //see if next byte is EOF
+        int c = fgetc(fileData->file);
+        if (c == EOF) {
+            // printf("Finished reading file %s \n", fileData->name);
+            fileData->finished = 1;
+            fclose(fileData->file);
+            return n;
+        }
+        else{
+            //go back one byte
+            fseek(fileData->file, -1, SEEK_CUR);
+            // printf("Last byte is not EOF, checking if it is a UTF-8 character \n");
+            //reset EOF flag
+            clearerr(fileData->file);
+        }
+    }
+    //check if last read byte is a 1 byte UTF-8 character and see if it is a separation symbol
+    //if it is not we must go backwards until we find the start of an UTF-8 character
+    //if that UTF-8 Character is not a separation symbol repeat the process
+    int copy = n-1;
+    
+    //check if last read is 1 byte separator
+    if ( (fileChunk->data[n-1] & 0b10000000) == 0 ) {
+        int c = getChar(fileChunk->data, &copy);
+
+        // printf("first check\n %d \n", c);
+
+        if (c != -1){
+            if (isSepPunc(c)){
+                return n;
+            }
+        }    
+    }
+    //go back until we find a separator
+    while ( 1 && (n > 0) ) {
+        //match beginning of UTF-8 character
+        if (((fileChunk->data[n-1] & 0b10000000) == 0) || ((fileChunk->data[n-1] & 0b11100000) == 0b11000000) || ((fileChunk->data[n-1] & 0b11110000) == 0b11100000)) {
+            copy = n-1;
+            int c = getChar(fileChunk->data, &copy);
+
+            // printf("\n %d \n", c);
+
+            if (c != -1){
+                if (isSepPunc(c)){
+                    // printf("Found separator %d at position %d \n", c, n-1);
+                    //go back to the end of the separator
+
+                    // long pos = ftell(fileData->file);
+                    // printf("current position %ld \n", pos);
+                    // printf("copy %d \n", copy);
+                    // printf("n %d \n", n);
+                    // printf("seeking to %d \n", -1*(CHUNKSIZE-copy));
+
+                    fseek(fileData->file, -1*(CHUNKSIZE-copy) , SEEK_CUR);
+                    //clear fileChunkdata past the separator
+                    for (int i = copy; i < CHUNKSIZE; i++){
+                        fileChunk->data[i] = 0;
+                    }
+                    return n;
+                }
+                else {
+                    n--;
+                }
+            }
+            else{
+                n--;
+            }
+
+        } 
+        else {
+            n--;
+        }
+            
+    }
+    printf("Failed to find a separator, ignoring file %s \n", fileData->name);
+    fileData->finished = 1;
+    fclose(fileData->file);
+    return 0;
+}
+
+// int main(int argc, char *argv[]) {
+//     // fseek(fp, 0L, SEEK_END);
+//     // long filesize = ftell(fp);
+//     // rewind(fp);
+//     // printf("filesize: %ld \n", filesize);
 //     struct Chunk fileChunk;
 //     fileChunk.FileId = 1;
 //     fileChunk.finished = 0;
-//     fileChunk.size = filesize;
-//     fileChunk.data = malloc(filesize);
-//     fread(fileChunk.data, filesize, 1, fp);
+//     fileChunk.size = 0;
+//     fileChunk.data = malloc(CHUNKSIZE);
 
-//     fclose(fp);
-//     processChunk(&fileChunk);
-    
-//     //print all chunk
-//     printf("Chunkk:\n");
-//     printf("nWords: %d\n", fileChunk.nWords);
-//     for(int i = 0; i < 6; i++){
-//         printf("nVowels[%d]: %d\n", i, fileChunk.nVowels[i]);
+//     struct FileData fileData;
+//     fileData.id = 1;
+//     fileData.name = "asd.txt";
+//     fileData.finished = 0;
+//     fileData.file = fopen("./dataSet1/text4.txt", "rb");
+//     fileData.nWords = 0;
+//     for(int j = 0; j < 6; j++){
+//         fileData.nVowels[j] = 0;
 //     }
-//     printf("finished: %d\n", fileChunk.finished);
-//     printf("FileId: %d\n", fileChunk.FileId);
-//     free(fileChunk.data);
+//     while (fileData.finished == 0)
+//     {
+//         fileChunk.size = readToChunk(&fileData, &fileChunk);
+//         processChunk(&fileChunk);
+//         printf("data: %s \n", fileChunk.data);
 
+//         fileData.nWords += fileChunk.nWords;
+//         for(int j = 0; j < 6; j++){
+//             fileData.nVowels[j] += fileChunk.nVowels[j];
+//         }
+//         //reset chunk
+//         fileChunk.size = 0;
+//         fileChunk.nWords = 0;
+//         fileChunk.finished = 0;
+//         fileChunk.FileId = -1;
+//         memset(fileChunk.data, 0, CHUNKSIZE);
+//         for(int j = 0; j < 6; j++){
+//             fileChunk.nVowels[j] = 0;
+//         }
+//     }
     
+   
+//     printf("nWords: %d \n", fileData.nWords);
+//     for(int j = 0; j < 6; j++){
+//         printf("nVowels[%d]: %d \n", j, fileData.nVowels[j]);
+//     }    
 //     return 0;
 // }
+
+
+
 

@@ -21,7 +21,10 @@
 
 /** \brief number of iterations of the life cycle */
 #define  M           10
-
-#define CHUNKSIZE 10
+/**
+ * @brief Size of the total bytes of data each chunk will have
+ * 
+ */
+#define CHUNKSIZE 100
 
 #endif /* PROBCONST_H_ */
