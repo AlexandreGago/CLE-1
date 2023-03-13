@@ -17,7 +17,7 @@ void *worker(void *arg);
  * @param argv  the arguments
  * @return int 
  */
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     //get text files from terminal
     char *files[2];
     files[0] = "dataSet1/text2.txt";
@@ -31,20 +31,20 @@ int main (int argc, char *argv[]){
     //create workers
     pthread_t workers[maxThreads];
     unsigned int workerId[maxThreads];
-    
-    for( unsigned int i = 0; i < maxThreads; i++){
+
+    for (unsigned int i = 0; i < maxThreads; i++) {
         printf("Creating thread %d\n", i);
         workerId[i] = i;
-        if(pthread_create(&workers[i], NULL, worker, &workerId[i] ) != 0){
+        if (pthread_create(&workers[i], NULL, worker, &workerId[i]) != 0) {
             printf("Error creating thread %d \n", i);
             exit(1);
         }
 
     }
-    
+
     //join workers
-    for(unsigned int i = 0; i < maxThreads; i++){
-        if(pthread_join(workers[i], NULL) != 0){
+    for (unsigned int i = 0; i < maxThreads; i++) {
+        if (pthread_join(workers[i], NULL) != 0) {
             printf("Error joining thread %d \n", i);
             exit(1);
         }
@@ -53,15 +53,16 @@ int main (int argc, char *argv[]){
     //print results
     printFilesData();
     freeSharedRegion();
-    
+
 }
+
 /**
  * @brief Worker function that gets data from the shared region and processes it
  * 
  * @param ID ID of the thread
  * @return void* 
  */
-void *worker(void *ID){
+void *worker(void *ID) {
 
     //save the id of the thread
     int *id = ID;
@@ -76,16 +77,16 @@ void *worker(void *ID){
     chunk.size = 0;
     chunk.nWords = 0;
     chunk.FileId = -1;
-    if(memset(chunk.data, 0, CHUNKSIZE) == NULL){
+    if (memset(chunk.data, 0, CHUNKSIZE) == NULL) {
         printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
         return NULL;
     }
-    for(int j = 0; j < 6; j++){
+    for (int j = 0; j < 6; j++) {
         chunk.nVowels[j] = 0;
     }
 
     //while there are files to process
-    while(!allFilesFinished()){
+    while (!allFilesFinished()) {
 
         // printf("Thread %d getting data  \n", *id);
 
@@ -93,6 +94,8 @@ void *worker(void *ID){
         getData(&chunk);
         //process the chunk
         processChunk(&chunk);
+        printf("Thread %d processed chunk of file %d of size %d \n", *id, chunk.FileId, chunk.size);
+        fflush(stdout);
         //save the results in the shared region
         saveResults(&chunk);
 
@@ -100,11 +103,11 @@ void *worker(void *ID){
         chunk.size = 0;
         chunk.nWords = 0;
         chunk.FileId = -1;
-        if(memset(chunk.data, 0, CHUNKSIZE) == NULL){
+        if (memset(chunk.data, 0, CHUNKSIZE) == NULL) {
             printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
             return NULL;
         }
-        for(int j = 0; j < 6; j++){
+        for (int j = 0; j < 6; j++) {
             chunk.nVowels[j] = 0;
         }
         // sleep(1);

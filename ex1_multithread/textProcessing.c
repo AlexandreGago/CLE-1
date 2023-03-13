@@ -9,11 +9,9 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include "probConst.h"
 #include "sharedRegion.h"
-#include <unistd.h>
 
 
 /**
@@ -23,11 +21,11 @@
  * @param index the index of the buffer to start reading on
  * @return int the decimal codepoint of the utf 8 character
  */
-int getChar(unsigned char *buffer, int *index){
+int getChar(unsigned char *buffer, int *index) {
     int c;
     //check if first bit is 0
     if ((buffer[*index] & 0b10000000) == 0) {
-        c= buffer[*index];
+        c = buffer[*index];
         (*index)++;
         return c;
     }
@@ -35,15 +33,14 @@ int getChar(unsigned char *buffer, int *index){
     if ((buffer[*index] & 0b11100000) == 0b11000000) {
         //the decimal codepoint is the 5 bits of the first byte and the 6 bits of the second byte
         c = (buffer[*index] & 0b00011111) << 6;
-        (*index)++; 
+        (*index)++;
         //check if the second byte is a valid utf 8 byte
         if ((buffer[*index] & 0b11000000) == 0b10000000) {
             //add the 6 bits of the second byte to the decimal codepoint
             c += (buffer[*index] & 0b00111111);
             (*index)++;
             return c;
-        }
-        else{
+        } else {
             //character is invalid/corrupted
             return -1;
         }
@@ -52,7 +49,7 @@ int getChar(unsigned char *buffer, int *index){
     if ((buffer[*index] & 0b11110000) == 0b11100000) {
         //the decimal codepoint is the 4 bits of the first byte and the 6 bits of the second and third bytes
         c = (buffer[*index] & 0b00001111) << 12;
-        (*index)++; 
+        (*index)++;
         //check if the second byte is a valid utf 8 byte
         if ((buffer[*index] & 0b11000000) == 0b10000000) {
             //add the 6 bits of the second byte to the decimal codepoint
@@ -64,19 +61,18 @@ int getChar(unsigned char *buffer, int *index){
                 c += (buffer[*index] & 0b00111111);
                 (*index)++;
                 return c;
-            }
-            else{
+            } else {
                 //character is invalid/corrupted
                 return -1;
             }
-        }
-        else{
+        } else {
             //character is invalid/corrupted
             return -1;
         }
-    } 
+    }
     return -1;
 }
+
 /**
  * @brief Check if a character is a separation or punctuation character
  * 
@@ -84,20 +80,20 @@ int getChar(unsigned char *buffer, int *index){
  * @return true  if the character is a separation or punctuation character
  * @return false if the character is not a separation or punctuation character
  */
-bool isSepPunc(int c){
+bool isSepPunc(int c) {
     //a character is separation or punctuation if it is:
     //space, tab, newline, carriage return
     /* - [ ] ( ) , . : ; ! ? « » " “ ” – …  — */
-    if (c == 32 || c == 9 || c == 10 || c == 13 || c == 45 || c == 91 || c == 93 || c == 40 || c == 41 
-        || c == 44 || c == 46 || c == 58 || c == 59 || c == 33 || c == 63 || c == 171 || c == 187 || c == 34 
+    if (c == 32 || c == 9 || c == 10 || c == 13 || c == 45 || c == 91 || c == 93 || c == 40 || c == 41
+        || c == 44 || c == 46 || c == 58 || c == 59 || c == 33 || c == 63 || c == 171 || c == 187 || c == 34
         || c == 147 || c == 148 || c == 8211 || c == 8230 || c == 8220 || c == 8221 || c == 8212) {
 
         return true;
-    }
-    else{
+    } else {
         return false;
     }
 }
+
 /**
  * @brief Check if a character is a merge character
  * 
@@ -117,12 +113,13 @@ bool isMerge(int c) {
  * @param vowelInWord an array of booleans that indicates if a vowel has already been found in the word
  * @param nVowels an array of integers that indicates the number of vowels found in the chunk
  */
-void isVowel(int c, bool *vowelInWord, int *nVowels){
+void isVowel(int c, bool *vowelInWord, int *nVowels) {
     //c is a vowel if it is:
     //a,e,i,o,u,y A,E,I,O,U,Y   á,é,í,ó,ú  Á,É,Í,Ó,Ú    à,è,ì,ò,ù À,È,Ì,Ò,Ù     â,ê,ô Â,Ê,Ô     ã,õ Ã,Õ
-    
+
     //check all "a" and "A" variants
-    if (c == 97 || c == 65 || c == 225 || c == 193 || c == 224 || c == 192 || c == 226 || c == 194 || c == 227 || c == 195) {
+    if (c == 97 || c == 65 || c == 225 || c == 193 || c == 224 || c == 192 || c == 226 || c == 194 || c == 227 ||
+        c == 195) {
         //check if any "a" has been found in the word
         if (!vowelInWord[0]) {
             vowelInWord[0] = true;
@@ -137,14 +134,15 @@ void isVowel(int c, bool *vowelInWord, int *nVowels){
         }
     }
     //check all "i" and "I" variants
-    if (c == 105 || c == 73 || c == 237 || c == 205 || c == 236 || c == 204 ) {
+    if (c == 105 || c == 73 || c == 237 || c == 205 || c == 236 || c == 204) {
         if (!vowelInWord[2]) {
             vowelInWord[2] = true;
             nVowels[2]++;
         }
     }
     //check all "o" and "O" variants
-    if (c == 111 || c == 79 || c == 243 || c == 211 || c == 242 || c == 210 || c == 244 || c == 212 || c == 245 || c == 213) {
+    if (c == 111 || c == 79 || c == 243 || c == 211 || c == 242 || c == 210 || c == 244 || c == 212 || c == 245 ||
+        c == 213) {
         if (!vowelInWord[3]) {
             vowelInWord[3] = true;
             nVowels[3]++;
@@ -166,6 +164,7 @@ void isVowel(int c, bool *vowelInWord, int *nVowels){
         }
     }
 }
+
 /**
  * @brief Performs the processing of a chunk of text
  * It is called by the threads and receives a pointer to a Chunk struct
@@ -173,13 +172,13 @@ void isVowel(int c, bool *vowelInWord, int *nVowels){
  * @param Chunk Struct that contains the data needed to process the chunk
  * It will also be used to store the results of the processing.
  */
-void processChunk(struct Chunk *fileChunk){
+void processChunk(struct Chunk *fileChunk) {
     //index of the buffer
     int buffIndex = 0;
     //variables to store the results of the processing
     bool inWord = false;
     int nWords = 0;
-    int nVowels[] = {0,0,0,0,0,0};
+    int nVowels[] = {0, 0, 0, 0, 0, 0};
     bool vowelInWord[] = {false, false, false, false, false, false};
     //loop that will process the chunk
     while (buffIndex < fileChunk->size) {
@@ -193,24 +192,23 @@ void processChunk(struct Chunk *fileChunk){
             continue;
         }
         //if inside word
-        if(inWord) {
+        if (inWord) {
             //check if its a separator or punctuation to end the word
-            if(isSepPunc(c)){
+            if (isSepPunc(c)) {
                 inWord = false;
                 //reset the vowelInWord array
-                for(int i = 0; i < 6; i++){
+                for (int i = 0; i < 6; i++) {
                     vowelInWord[i] = false;
-                } 
-            }
-            else {
+                }
+            } else {
                 //void function that checks if its a vowel and updates accordingly
                 isVowel(c, vowelInWord, nVowels);
             }
         }
-        //if not inside word
-        else{
+            //if not inside word
+        else {
             //check if its not a separator oor punctuation to start a new word
-            if(!isSepPunc(c)){
+            if (!isSepPunc(c)) {
                 //check if its not a merge character
                 if (!isMerge(c)) {
                     //start a new word
@@ -227,23 +225,23 @@ void processChunk(struct Chunk *fileChunk){
     }
     //store the results in the struct
     fileChunk->nWords = nWords;
-    for(int i = 0; i < 6; i++){
+    for (int i = 0; i < 6; i++) {
         fileChunk->nVowels[i] = nVowels[i];
-    }    
+    }
 }
 
-int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){
-    
+int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
+
     int n = fread(fileChunk->data, 1, CHUNKSIZE, fileData->file);
     // printf("Read %d bytes from file %s \n", n, fileData->name);
     //if error reading file
-    if (n <0){
+    if (n < 0) {
         printf("Error reading file %s, ignoring it \n", fileData->name);
         fileData->finished = 1;
         fclose(fileData->file);
     }
     //if file is at the end we didn't cut words
-    if (feof(fileData->file) || n == 0){
+    if (feof(fileData->file) || n == 0) {
         printf("Finished reading file %s \n", fileData->name);
         fileData->finished = 1;
         fclose(fileData->file);
@@ -258,8 +256,7 @@ int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){
             fileData->finished = 1;
             fclose(fileData->file);
             return n;
-        }
-        else{
+        } else {
             //go back one byte
             fseek(fileData->file, -1, SEEK_CUR);
             // printf("Last byte is not EOF, checking if it is a UTF-8 character \n");
@@ -270,31 +267,32 @@ int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){
     //check if last read byte is a 1 byte UTF-8 character and see if it is a separation symbol
     //if it is not we must go backwards until we find the start of an UTF-8 character
     //if that UTF-8 Character is not a separation symbol repeat the process
-    int copy = n-1;
-    
+    int copy = n - 1;
+
     //check if last read is 1 byte separator
-    if ( (fileChunk->data[n-1] & 0b10000000) == 0 ) {
+    if ((fileChunk->data[n - 1] & 0b10000000) == 0) {
         int c = getChar(fileChunk->data, &copy);
 
         // printf("first check\n %d \n", c);
 
-        if (c != -1){
-            if (isSepPunc(c)){
+        if (c != -1) {
+            if (isSepPunc(c)) {
                 return n;
             }
-        }    
+        }
     }
     //go back until we find a separator
-    while ( 1 && (n > 0) ) {
+    while (1 && (n > 0)) {
         //match beginning of UTF-8 character
-        if (((fileChunk->data[n-1] & 0b10000000) == 0) || ((fileChunk->data[n-1] & 0b11100000) == 0b11000000) || ((fileChunk->data[n-1] & 0b11110000) == 0b11100000)) {
-            copy = n-1;
+        if (((fileChunk->data[n - 1] & 0b10000000) == 0) || ((fileChunk->data[n - 1] & 0b11100000) == 0b11000000) ||
+            ((fileChunk->data[n - 1] & 0b11110000) == 0b11100000)) {
+            copy = n - 1;
             int c = getChar(fileChunk->data, &copy);
 
             // printf("\n %d \n", c);
 
-            if (c != -1){
-                if (isSepPunc(c)){
+            if (c != -1) {
+                if (isSepPunc(c)) {
                     // printf("Found separator %d at position %d \n", c, n-1);
                     //go back to the end of the separator
 
@@ -304,26 +302,23 @@ int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){
                     // printf("n %d \n", n);
                     // printf("seeking to %d \n", -1*(CHUNKSIZE-copy));
 
-                    fseek(fileData->file, -1*(CHUNKSIZE-copy) , SEEK_CUR);
+                    fseek(fileData->file, -1 * (CHUNKSIZE - copy), SEEK_CUR);
                     //clear fileChunkdata past the separator
-                    for (int i = copy; i < CHUNKSIZE; i++){
+                    for (int i = copy; i < CHUNKSIZE; i++) {
                         fileChunk->data[i] = 0;
                     }
                     return n;
-                }
-                else {
+                } else {
                     n--;
                 }
-            }
-            else{
+            } else {
                 n--;
             }
 
-        } 
-        else {
+        } else {
             n--;
         }
-            
+
     }
     printf("Failed to find a separator, ignoring file %s \n", fileData->name);
     fileData->finished = 1;
@@ -371,8 +366,8 @@ int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){
 //             fileChunk.nVowels[j] = 0;
 //         }
 //     }
-    
-   
+
+
 //     printf("nWords: %d \n", fileData.nWords);
 //     for(int j = 0; j < 6; j++){
 //         printf("nVowels[%d]: %d \n", j, fileData.nVowels[j]);
