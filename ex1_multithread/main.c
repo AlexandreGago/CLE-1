@@ -19,13 +19,17 @@ void *worker(void *arg);
  */
 int main(int argc, char *argv[]) {
     //get text files from terminal
-    char *files[2];
-    files[0] = "dataSet1/text2.txt";
-    files[1] = "dataSet1/text3.txt";
-    // files[2] = "dataSet1/text1.txt";
+    char *files[argc-1];
+    //read files from terminal
+    for (int i = 1; i < argc; i++) {
+        files[i-1] = argv[i];
+        printf("\nFile %d: %s, ", i, files[i-1]);
+    }
+    // files[0] = "dataSet1/text2.txt";
+    // files[1] = "dataSet1/test6.txt";
 
     //initialize the shared region
-    initializeSharedRegion(files, 2);
+    initializeSharedRegion(files, argc-1);
     // initializeSharedRegion(argv, argc);
 
     //create workers
@@ -52,8 +56,11 @@ int main(int argc, char *argv[]) {
 
     //print results
     printFilesData();
+    printf("Done \n");
+    fflush(stdout);
     freeSharedRegion();
-
+    printf("Done2 \n");
+    fflush(stdout);
 }
 
 /**
@@ -91,13 +98,27 @@ void *worker(void *ID) {
         // printf("Thread %d getting data  \n", *id);
 
         //get data from the file
-        getData(&chunk);
+        if(!getData(&chunk)){
+            printf("Error getting data in thread %d ,exiting thread.\n", *id);
+            return NULL;
+        }
+
         //process the chunk
-        processChunk(&chunk);
-        printf("Thread %d processed chunk of file %d of size %d \n", *id, chunk.FileId, chunk.size);
-        fflush(stdout);
+        if(!processChunk(&chunk)){
+            printf("Error processing chunk in thread %d ,exiting thread.\n", *id);
+            SignalCorruptFile(chunk.FileId);
+            return NULL;
+        }
+        else{
+            printf("Thread %d processed chunk of file %d of size %d name \n", *id, chunk.FileId, chunk.size);
+            fflush(stdout);
+        }
+
         //save the results in the shared region
-        saveResults(&chunk);
+        if(!saveResults(&chunk)){
+            printf("Error saving results in thread %d ,exiting thread.\n", *id);
+            return NULL;
+        }
 
         //reset chunk
         chunk.size = 0;

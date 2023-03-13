@@ -16,7 +16,7 @@
  * @param Chunk Struct that contains the data needed to process the chunk
  * It will also be used to store the results of the processing.
  */
-extern void processChunk(struct Chunk *fileChunk);
+extern int processChunk(struct Chunk *fileChunk);
 
 /**
  * @brief 

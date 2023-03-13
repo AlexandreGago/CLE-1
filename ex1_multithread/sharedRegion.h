@@ -14,6 +14,7 @@ struct FileData
     char *name;
     FILE *file;
     int finished;
+    int corrupt;
 
     int nWords;
     int nVowels[6];
@@ -66,12 +67,18 @@ extern int allFilesFinished();
  * 
  * @param chunk 
  */
-extern void getData(struct Chunk *chunk);
+extern int getData(struct Chunk *chunk);
 
 /**
  * @brief 
  * Save the results of the processing of a chunk in the filesData array
  * @param chunk chunk containing the data to be saved
  */
-extern void saveResults(struct Chunk *chunk);
+extern int saveResults(struct Chunk *chunk);
 
+/**
+ * @brief 
+ * 
+ * @param fileId 
+ */
+extern void SignalCorruptFile(int fileId);

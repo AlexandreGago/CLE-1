@@ -172,7 +172,7 @@ void isVowel(int c, bool *vowelInWord, int *nVowels) {
  * @param Chunk Struct that contains the data needed to process the chunk
  * It will also be used to store the results of the processing.
  */
-void processChunk(struct Chunk *fileChunk) {
+int processChunk(struct Chunk *fileChunk) {
     //index of the buffer
     int buffIndex = 0;
     //variables to store the results of the processing
@@ -186,10 +186,8 @@ void processChunk(struct Chunk *fileChunk) {
         //get the integer decimal representation of the char
         int c = getChar(fileChunk->data, &buffIndex);
         if (c == -1) {
-            //invalid character, skip it
-            //!TODO: log error
-            printf("Invalid character found in file %d at position %d \n", fileChunk->FileId, buffIndex);
-            continue;
+            //invalid character, abort file
+            return 0;
         }
         //if inside word
         if (inWord) {
@@ -228,6 +226,7 @@ void processChunk(struct Chunk *fileChunk) {
     for (int i = 0; i < 6; i++) {
         fileChunk->nVowels[i] = nVowels[i];
     }
+    return 1;
 }
 
 int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
