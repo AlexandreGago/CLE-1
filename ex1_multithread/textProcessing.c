@@ -229,9 +229,7 @@ void processChunk(struct Chunk *fileChunk){
     fileChunk->nWords = nWords;
     for(int i = 0; i < 6; i++){
         fileChunk->nVowels[i] = nVowels[i];
-    }
-    fileChunk->finished = 1;
-    
+    }    
 }
 
 int readToChunk(struct FileData *fileData,struct Chunk *fileChunk){

@@ -26,7 +26,6 @@ struct FileData
 struct Chunk
 {
     int FileId;
-    int finished;
     int size;
     unsigned char *data;
     

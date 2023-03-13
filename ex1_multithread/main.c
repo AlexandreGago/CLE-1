@@ -1,15 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-//include workers
 #include <pthread.h>
 #include <unistd.h>
 
 #include "sharedRegion.h"
 #include "probConst.h"
 #include "textProcessing.h"
-
-int numThreads = 4;
-int numProducers = 1;
 
 void *worker(void *arg);
 
@@ -33,24 +29,29 @@ int main (int argc, char *argv[]){
     // initializeSharedRegion(argv, argc);
 
     //create workers
-    pthread_t workers[numThreads];
-    unsigned int workerId[numThreads];
+    pthread_t workers[maxThreads];
+    unsigned int workerId[maxThreads];
     
-    for( unsigned int i = 0; i < numThreads; i++){
+    for( unsigned int i = 0; i < maxThreads; i++){
         printf("Creating thread %d\n", i);
         workerId[i] = i;
-        pthread_create(&workers[i], NULL, worker, &workerId[i]);
+        if(pthread_create(&workers[i], NULL, worker, &workerId[i] ) != 0){
+            printf("Error creating thread %d \n", i);
+            exit(1);
+        }
 
     }
     
     //join workers
-    for(unsigned int i = 0; i < numThreads; i++){
-        pthread_join(workers[i], NULL);
+    for(unsigned int i = 0; i < maxThreads; i++){
+        if(pthread_join(workers[i], NULL) != 0){
+            printf("Error joining thread %d \n", i);
+            exit(1);
+        }
     }
 
     //print results
     printFilesData();
-
     freeSharedRegion();
     
 }
@@ -64,17 +65,21 @@ void *worker(void *ID){
 
     //save the id of the thread
     int *id = ID;
-    printf("\nThread %d started working \n", *id);
 
     //create a chunk to work with
     struct Chunk chunk;
     //malloc the buffer
-    chunk.data = malloc(CHUNKSIZE);
+    if ((chunk.data = malloc(CHUNKSIZE)) == NULL) {
+        printf("Error allocating memory in thread %d, exiting thread.\n", *id);
+        return NULL;
+    }
     chunk.size = 0;
     chunk.nWords = 0;
-    chunk.finished = 0;
     chunk.FileId = -1;
-    memset(chunk.data, 0, CHUNKSIZE);
+    if(memset(chunk.data, 0, CHUNKSIZE) == NULL){
+        printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
+        return NULL;
+    }
     for(int j = 0; j < 6; j++){
         chunk.nVowels[j] = 0;
     }
@@ -83,7 +88,6 @@ void *worker(void *ID){
     while(!allFilesFinished()){
 
         // printf("Thread %d getting data  \n", *id);
-        fflush(stdout);
 
         //get data from the file
         getData(&chunk);
@@ -95,9 +99,11 @@ void *worker(void *ID){
         //reset chunk
         chunk.size = 0;
         chunk.nWords = 0;
-        chunk.finished = 0;
         chunk.FileId = -1;
-        memset(chunk.data, 0, CHUNKSIZE);
+        if(memset(chunk.data, 0, CHUNKSIZE) == NULL){
+            printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
+            return NULL;
+        }
         for(int j = 0; j < 6; j++){
             chunk.nVowels[j] = 0;
         }

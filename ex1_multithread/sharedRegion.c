@@ -55,8 +55,14 @@ void freeSharedRegion(){
         fclose(filesData[i].file);
     }
     free(filesData);
-    pthread_mutex_destroy(&lockGetData);
-    pthread_mutex_destroy(&lockSaveData);
+    if(pthread_mutex_destroy(&lockGetData)){
+        printf("Error destroying mutex lockGetData \n"); 
+        exit(1);
+    }
+    if(pthread_mutex_destroy(&lockSaveData) ){
+        printf("Error destroying mutex lockSaveData \n"); 
+        exit(1);
+    }
 }
 
 int allFilesFinished(){
@@ -87,16 +93,6 @@ void getData(struct Chunk *fileChunk){
       int n = readToChunk(&filesData[i],fileChunk);
 
       fileChunk->size = n;
-
-      //check if the file is finished
-      if(feof(filesData[i].file)){
-        filesData[i].finished = 1;
-        fileChunk->finished = 1;
-        printf("File %s finished\n", filesData[i].name);
-        fflush(stdout);
-
-      }
-      //serves to stop the loop after getting data from one file
       break;
     }
   }
@@ -119,7 +115,7 @@ void saveResults(struct Chunk *chunk){
   // printf("ChunkSize: %d\n", chunk->size);
   // printf("ChunkFinished: %d\n", chunk->finished);
   // printf("ChunkData: %s\n", chunk->data);
-  fflush(stdout);
+  // fflush(stdout);
 
 
   filesData[chunk->FileId].nWords += chunk->nWords;

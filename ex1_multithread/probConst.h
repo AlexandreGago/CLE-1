@@ -16,15 +16,10 @@
 /** \brief maximum number of producers / consumers */
 #define  maxThreads           4
 
-/** \brief maximum capacity of the data transfer region (in number of values that can be stored) */
-#define  K           10
-
-/** \brief number of iterations of the life cycle */
-#define  M           10
 /**
  * @brief Size of the total bytes of data each chunk will have
  * 
  */
-#define CHUNKSIZE 100
+#define CHUNKSIZE 4000
 
 #endif /* PROBCONST_H_ */
