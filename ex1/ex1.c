@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 char processBuffer(unsigned char *buf, int size) {
     /*
@@ -146,6 +147,10 @@ char getnextchar(FILE *fp) {
 }
 
 int main(int argc, char *argv[]) {
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     if (argc < 2) {//if there are no arguments
         printf("Provide some text files");
         return (1);
@@ -193,7 +198,7 @@ int main(int argc, char *argv[]) {
                 //loop that processes each character in a file until EOF is reached
                 // here the total number of words in the file and the number of words that contain the chosen character are counted
                 while ((c = getnextchar(fp)) != 0) {
-                    printf("%c", c);    
+                    // printf("%c", c);    
                     if (c == '!') {
                         continue;
                     }
@@ -280,5 +285,8 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Time taken: %f seconds\n", cpu_time_used);
     return (0);
 }

@@ -14,12 +14,12 @@
 /* Generic parameters */
 
 /** \brief maximum number of producers / consumers */
-#define  maxThreads           4
+#define  maxThreads           1
 
 /**
  * @brief Size of the total bytes of data each chunk will have
  * 
  */
-#define CHUNKSIZE 4000
+#define CHUNKSIZE 40000
 
 #endif /* PROBCONST_H_ */

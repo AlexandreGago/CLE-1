@@ -241,7 +241,7 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
     }
     //if file is at the end we didn't cut words
     if (feof(fileData->file) || n == 0) {
-        printf("Finished reading file %s \n", fileData->name);
+        // printf("Finished reading file %s \n", fileData->name);
         fileData->finished = 1;
         fclose(fileData->file);
         return n;

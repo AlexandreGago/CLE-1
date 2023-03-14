@@ -7,6 +7,8 @@
 #include "probConst.h"
 #include "textProcessing.h"
 
+#include <time.h>
+
 void *worker(void *arg);
 
 
@@ -18,6 +20,11 @@ void *worker(void *arg);
  * @return int 
  */
 int main(int argc, char *argv[]) {
+    //time the total timeof the program
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     //get text files from terminal
     char *files[argc-1];
     //read files from terminal
@@ -25,19 +32,16 @@ int main(int argc, char *argv[]) {
         files[i-1] = argv[i];
         printf("\nFile %d: %s, ", i, files[i-1]);
     }
-    // files[0] = "dataSet1/text2.txt";
-    // files[1] = "dataSet1/test6.txt";
 
     //initialize the shared region
     initializeSharedRegion(files, argc-1);
-    // initializeSharedRegion(argv, argc);
 
     //create workers
     pthread_t workers[maxThreads];
     unsigned int workerId[maxThreads];
 
     for (unsigned int i = 0; i < maxThreads; i++) {
-        printf("Creating thread %d\n", i);
+        // printf("Creating thread %d\n", i);
         workerId[i] = i;
         if (pthread_create(&workers[i], NULL, worker, &workerId[i]) != 0) {
             printf("Error creating thread %d \n", i);
@@ -56,11 +60,13 @@ int main(int argc, char *argv[]) {
 
     //print results
     printFilesData();
-    printf("Done \n");
-    fflush(stdout);
+
+    // free shared region
     freeSharedRegion();
-    printf("Done2 \n");
-    fflush(stdout);
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("\nTotal time: %f seconds\n", cpu_time_used);
+
 }
 
 /**
@@ -109,10 +115,10 @@ void *worker(void *ID) {
             SignalCorruptFile(chunk.FileId);
             return NULL;
         }
-        else{
-            printf("Thread %d processed chunk of file %d of size %d name \n", *id, chunk.FileId, chunk.size);
-            fflush(stdout);
-        }
+        // else{
+        //     printf("Thread %d processed chunk of file %d of size %d name \n", *id, chunk.FileId, chunk.size);
+        //     fflush(stdout);
+        // }
 
         //save the results in the shared region
         if(!saveResults(&chunk)){

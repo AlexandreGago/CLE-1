@@ -42,19 +42,20 @@ void initializeSharedRegion(char **files, int numFiles) {
 
 void printFilesData() {
     for (int i = 0; i < totalFiles; i++) {
+        printf("\n-------------------------------");
         if(filesData[i].file == NULL){
-            printf("File: %s\n", filesData[i].name);
+            printf("\nFile: %s\n", filesData[i].name);
             printf("Error opening file: %s \n", filesData[i].name);
             continue;
         }
         else if (filesData[i].corrupt == 1) {
-            printf("File: %s\n", filesData[i].name);
+            printf("\nFile: %s\n", filesData[i].name);
             printf("File %s is corrupt \n", filesData[i].name);
             continue;
         }
        
         else{
-            printf("File: %s\n", filesData[i].name);
+            printf("\nFile: %s\n", filesData[i].name);
             printf("Number of words: %d\n", filesData[i].nWords);
             //print vowels with alignment
             //   a   e   i   o   u   y
@@ -62,14 +63,17 @@ void printFilesData() {
             printf("%4c %4c %4c %4c %4c %4c\n", 'a', 'e', 'i', 'o', 'u', 'y');
             printf("%4d %4d %4d %4d %4d %4d\n", filesData[i].nVowels[0], filesData[i].nVowels[1], filesData[i].nVowels[2], filesData[i].nVowels[3], filesData[i].nVowels[4], filesData[i].nVowels[5]);
         }
+
     }
+    printf("-------------------------------");
+
 }
 
 void freeSharedRegion() {
 
     for (int i = 0; i < totalFiles; i++) {
-        printf("Closing file %s %p a\n", filesData[i].name,filesData[i].file);
-        printf("%p",filesData[i].file);
+        // printf("Closing file %s %p a\n", filesData[i].name,filesData[i].file);
+        // printf("%p",filesData[i].file);
         fflush(stdout);
         filesData[i].file = fopen(filesData[i].name, "r");
         if (filesData[i].file != NULL){
