@@ -1,6 +1,7 @@
 #include "merge.h"
 
 int min(int x, int y) { return (x<y)? x :y; }
+void mergeItr(int arr[], int l, int m, int r);
 
 void mergeSortItr(int arr[], int n)
 {

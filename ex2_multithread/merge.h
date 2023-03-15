@@ -22,4 +22,5 @@
  * @param n 
  */
 extern void mergeSortItr(int arr[], int n);
+void mergeItr(int arr[], int l, int m, int r);
 #endif /* MERGE_H */
