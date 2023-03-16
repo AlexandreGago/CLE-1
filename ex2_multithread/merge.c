@@ -1,4 +1,5 @@
 #include "merge.h"
+#include <time.h>
 
 int min(int x, int y) { return (x<y)? x :y; }
 void mergeItr(int arr[], int l, int m, int r);
@@ -24,7 +25,6 @@ void mergeSortItr(int arr[], int n)
   
            int right_end = min(left_start + 2*curr_size - 1, n-1);
   
-           // Merge Subarrays arr[left_start...mid] & arr[mid+1...right_end]
            mergeItr(arr, left_start, mid, right_end);
        }
    }
@@ -36,8 +36,10 @@ void mergeItr(int arr[], int l, int m, int r)
     int n1 = m - l + 1;
     int n2 =  r - m;
   
-    /* create temp arrays */
-    int L[n1], R[n2];
+    /* create dynamic temp arrays */
+    int *L = (int *)malloc(n1 * sizeof(int));
+    int *R = (int *)malloc(n2 * sizeof(int));
+
   
     /* Copy data to temp arrays L[] and R[] */
     for (i = 0; i < n1; i++)
@@ -79,4 +81,6 @@ void mergeItr(int arr[], int l, int m, int r)
         j++;
         k++;
     }
+    free(L);
+    free(R);
 }

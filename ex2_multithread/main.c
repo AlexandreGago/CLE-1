@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdbool.h>
+#include <math.h>
 #include "fifo.h"
 #include "sharedRegion.h"
 #include "merge.h"
@@ -11,8 +12,8 @@
 void *worker(void *arg);
 void *distributor (void *arg);
 
-int numThreads = 1;
-int buffersize = 100;
+int numThreads = 8;
+int buffersize = 1000;
 
 int main(int argc, char *argv[]) {
 
@@ -86,7 +87,6 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
     }
-
     //wait for distributor thread to finish
     if (pthread_join(distributor_thread, NULL) != 0) {
         printf("Error joining distributor thread \n");
@@ -100,22 +100,50 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
     }
+    printf("All threads finished\n");
+    fflush(stdout);
+    //merge the sorted subarrays
+    for(int i=0;i<numThreads-1;i++){
+        // printf("Merge %d\n",i);
+        array_t array1 = fifo_pop(getFifoSorted());
+        array_t array2 = fifo_pop(getFifoSorted());
+        //unite the two arrays
+        int* array3 = malloc(sizeof(int)*(array1.size+array2.size));
+        //copy the array1 and array2 in array3
+        for(int j=0;j<array1.size;j++){
+            array3[j] = array1.array[j];
+        }
+        for(int j=0;j<array2.size;j++){
+            array3[array1.size+j] = array2.array[j];
+        }
+        //merge the two arrays
+        mergeItr(array3,0,array1.size-1,array1.size+array2.size-1);
+        
+        //put the array in the fifo_sorted
+        array_t *array4 = malloc(sizeof(array_t));
+        array4->array = array3;
+        array4->size = array1.size+array2.size;
+        fifo_push(getFifoSorted(),array4);
+        // printf("\n\n");
+        free(array1.array);
+        free(array2.array);
+    }
+    array_t array3 = fifo_pop(getFifoSorted());
 
-
-    array_t array = fifo_pop(getFifoSorted());
-    printarray(array.array, array.size);
-    bool is_sorted = true;
-    for (int i = 0; i < array.size- 1; i++) {
-        if (array.array[i] > array.array[i + 1]) {
-            is_sorted = false;
-            printf("The array is incorrect at index %d and %d (%d,%d)", i, i + 1, array.array[i], array.array[i + 1]);
+    //check if array3 is sorted in crescent order
+    bool crescent = true;
+    for (int i = 0; i < array3.size-1; i++) {
+        if (array3.array[i] > array3.array[i+1]) {
+            crescent = false;
         }
     }
-    if (is_sorted) {
-        printf("The array is sorted in crescent order \n");
+    if (crescent) {
+        printf("Array is sorted in crescent order\n");
     } else {
-        printf("The array is not sorted in crescent order \n");
+        printf("Array is not sorted in crescent order\n");
     }
+
+
     freeSharedRegion();
     // free(fifo_unsorted);
     // free(fifo_sorted);
@@ -135,6 +163,7 @@ void *worker(void *arg) {
     //}
     return NULL;
 }
+
 
 void *distributor (void *arg){
     
@@ -162,13 +191,36 @@ void *distributor (void *arg){
     };
     fclose(f);
 
-    printf("Array read from file: ");
-    printarray(arr, arr_size);
-    array_t *arr1 = malloc(sizeof(array_t));
-    arr1->array = arr;
-    arr1->size = arr_size;
+    //printf("Array read from file %s   \n", filename);
+    //printarray(arr, arr_size);
 
-    fifo_push(getFifoUnsorted(), arr1);
+    for (int i=0;i<numThreads;i++){
+        array_t *arr1 = malloc(sizeof(array_t));
+        arr1->array = malloc(sizeof(int)*(arr_size/numThreads));
+        arr1->size = arr_size/numThreads;
+        //copy the elements of arr to arr1
+        for (int j=0;j<arr1->size;j++){
+            arr1->array[j] = arr[i*arr1->size+j];
+        }
+            //print the subarrays
+        //printf("Subarray %d   \n", i);
+        //printarray(arr1->array, arr1->size);
+        //put the subarrays in the fifo
+        fifo_push(getFifoUnsorted(), arr1); 
+        
+    }
+
+
+    
+    // int n_iter = (int)log2(arr_size) + 1;
+
+    // for ( int i = 0; i < n_iter; i++) {
+        
+    //     int subarray_size = arr_size/ numThreads;
+
+
+    // }
+    //break array into subarrays
     
 
 

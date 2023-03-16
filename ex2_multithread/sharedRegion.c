@@ -44,6 +44,8 @@ void freeSharedRegion() {
     fifo_destroy(fifo_unsorted);
     fifo_destroy(fifo_sorted);
     free(fileName);
+    free(fifo_unsorted);
+    free(fifo_sorted);
     
 }
 
