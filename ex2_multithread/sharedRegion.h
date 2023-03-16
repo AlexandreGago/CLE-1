@@ -10,9 +10,11 @@
 #define SHAREGION_H
 
 
-void initializeSharedRegion(int numThreads, int arraySize,fifo_t *fifo_unsorted,fifo_t *fifo_sorted);
+void initializeSharedRegion(int arraySize, char *filename);
 void printarray(int *array, int size);
-void freeSharedRegion(int numThreads, int arraySize);
-
+void freeSharedRegion();
+char *getFileName();
+fifo_t *getFifoUnsorted();
+fifo_t *getFifoSorted();
 
 #endif /* SHAREGION_H */

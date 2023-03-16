@@ -1,21 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-
+#include <string.h>
 #include "fifo.h"
 
 fifo_t *fifo_unsorted;
 fifo_t *fifo_sorted;
+//string to be used for the name of the file
+char *fileName;
 
-void initializeSharedRegion(int numThreads, int arraySize,fifo_t *fifo_unsorted,fifo_t *fifo_sorted) {
+void initializeSharedRegion(int buffersize, char *filename) {
     //allocate memory for an array with numThreads elements where 
-    //each element is an array of size arraySize
-    //initialize each element of the array to 0
-
     //initialize the fifo_unsorted
-    fifo_init(fifo_unsorted, arraySize);
-    fifo_init(fifo_sorted, arraySize);
-
+    fifo_unsorted = malloc(sizeof(fifo_t));
+    fifo_sorted = malloc(sizeof(fifo_t));
+    fifo_init(fifo_unsorted, buffersize);
+    fifo_init(fifo_sorted, buffersize);
+    fileName = (char *)malloc(strlen(filename) + 1);
+    strcpy(fileName, filename);
+    
 }
 void printarray(int *array, int size) {
     int i;
@@ -25,11 +28,23 @@ void printarray(int *array, int size) {
     printf("\n");
 }
 
-void freeSharedRegion(int numThreads, int arraySize) {
+char *getFileName() {
+    return fileName;
+}
+fifo_t *getFifoUnsorted() {
+    return fifo_unsorted;
+}
+fifo_t *getFifoSorted() {
+    return fifo_sorted;
+}
+
+void freeSharedRegion() {
     //free the memory allocated for the shared region
     //free the fifos
     fifo_destroy(fifo_unsorted);
     fifo_destroy(fifo_sorted);
+    free(fileName);
+    
 }
 
 // int main (int argc, char *argv[]) {
