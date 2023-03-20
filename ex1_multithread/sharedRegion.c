@@ -26,6 +26,7 @@ void initializeSharedRegion(char **files, int numFiles) {
     totalFiles = numFiles;
 
     //initialize mutex locks for the shared region
+    //!change to 1 mutex called lock
     if (pthread_mutex_init(&lockGetData, NULL)) {
         printf("Error initializing mutex \n");
         exit(1);
@@ -43,15 +44,18 @@ void initializeSharedRegion(char **files, int numFiles) {
         filesData[i].corrupt = 0;
         FILE *fp = fopen(files[i], "r");
         if (fp == NULL) {
-            printf("Error opening file '%s' for reading \n", files[i]);
+            // printf("Error opening file '%s' for reading \n", files[i]);
             filesData[i].finished = 1;
             filesData[i].corrupt = 1;
         }
+        
         filesData[i].file = fp;
         filesData[i].nWords = 0;
         for (int j = 0; j < 6; j++) {
             filesData[i].nVowels[j] = 0;
         }
+    
+        
     }
 }
 
@@ -60,10 +64,8 @@ void printFilesData() {
         printf("\n-------------------------------");
         if (filesData[i].corrupt == 1) {
             printf("\nFile: %s\n", filesData[i].name);
-            printf("File %s is corrupt \n", filesData[i].name);
-            continue;
+            printf("File is invalid/corrupt \n");
         }
-       
         else{
             printf("\nFile: %s\n", filesData[i].name);
             printf("Number of words: %d\n", filesData[i].nWords);
@@ -105,6 +107,7 @@ void freeSharedRegion() {
     }
 }
 
+//! use mutex
 int allFilesFinished() {
     for (int i = 0; i < totalFiles; i++) {
         if (filesData[i].finished == 0) {
@@ -118,7 +121,7 @@ int getData(struct Chunk *fileChunk) {
     //lock the shared region to get data
     if (pthread_mutex_lock(&lockGetData)) {
         printf("Error locking mutex in getData \n");
-        return 0;
+        return -1;
     }
     //fills the chunk with the data from the file
     //if the file is finished, chunk->finished = 1
@@ -134,7 +137,7 @@ int getData(struct Chunk *fileChunk) {
             int n;
             if ((n = readToChunk(&filesData[i], fileChunk))== 0) {
                 printf("Error reading file to chunk \n");
-                return 0;
+                return -1;
             }
 
             fileChunk->size = n;
@@ -144,16 +147,16 @@ int getData(struct Chunk *fileChunk) {
     //unlock the shared region to get data
     if (pthread_mutex_unlock(&lockGetData)) {
         printf("Error unlocking mutex \n");
-        return 0;
+        return -1;
     }
-    return 1;
+    return 0;
 }
 
 int saveResults(struct Chunk *chunk) {
     //lock the shared region to save data
     if (pthread_mutex_lock(&lockSaveData)) {
         printf("Error locking mutex in Save Results \n");
-        return 0;
+        return -1;
     }
 
     filesData[chunk->FileId].nWords += chunk->nWords;
@@ -164,11 +167,12 @@ int saveResults(struct Chunk *chunk) {
     //unlock the shared region to save data
     if (pthread_mutex_unlock(&lockSaveData)) {
         printf("Error unlocking mutex \n");
-        return 0;
+        return -1;
     }
-    return 1;
+    return 0;
 }
 
+//!use mutex
 void SignalCorruptFile(int FileId){
     filesData[FileId].corrupt = 1;
     filesData[FileId].finished = 1;

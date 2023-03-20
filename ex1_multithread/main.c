@@ -149,20 +149,20 @@ void *worker(void *ID) {
         // printf("Thread %d getting data  \n", *id);
 
         //get data from the file
-        if(!getData(&chunk)){
+        if(getData(&chunk) != 0){
             printf("Error getting data in thread %d ,exiting thread.\n", *id);
             return NULL;
         }
 
         //process the chunk
-        if(!processChunk(&chunk)){
+        if(processChunk(&chunk) != 0){
             printf("Error processing chunk in thread %d ,exiting thread.\n", *id);
             SignalCorruptFile(chunk.FileId);
             return NULL;
         }
 
         //save the results in the shared region
-        if(!saveResults(&chunk)){
+        if(saveResults(&chunk) != 0){
             printf("Error saving results in thread %d ,exiting thread.\n", *id);
             return NULL;
         }
@@ -173,6 +173,7 @@ void *worker(void *ID) {
         chunk.FileId = -1;
         if (memset(chunk.data, 0, CHUNKSIZE) == NULL) {
             printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
+            free(chunk.data);
             return NULL;
         }
         for (int j = 0; j < 6; j++) {

@@ -157,7 +157,6 @@ void isVowel(int c, bool *vowelInWord, int *nVowels) {
     }
     //check all "y" and "Y" variants
     if (c == 121 || c == 89) {
-        printf(" %d", vowelInWord[5]);
         if (!vowelInWord[5]) {
             vowelInWord[5] = true;
             nVowels[5]++;
@@ -187,7 +186,7 @@ int processChunk(struct Chunk *fileChunk) {
         int c = getChar(fileChunk->data, &buffIndex);
         if (c == -1) {
             //invalid character, abort file
-            return 0;
+            return -1;
         }
         //if inside word
         if (inWord) {
@@ -226,7 +225,7 @@ int processChunk(struct Chunk *fileChunk) {
     for (int i = 0; i < 6; i++) {
         fileChunk->nVowels[i] = nVowels[i];
     }
-    return 1;
+    return 0;
 }
 
 int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
