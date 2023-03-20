@@ -36,8 +36,8 @@ void fifo_push(fifo_t *fifo, array_t* array) {
 
     fifo->count++;
 
-    pthread_mutex_unlock(&fifo->lock);
     pthread_cond_signal(&fifo->not_empty);
+    pthread_mutex_unlock(&fifo->lock);
 }
 
 array_t fifo_pop(fifo_t *fifo) {
@@ -51,14 +51,18 @@ array_t fifo_pop(fifo_t *fifo) {
     array.size = fifo->buffer[fifo->start].size;
     //print the array in the buffer to make sure it is correct
 
+    //!CHECK IF THE ARRAY NEEDS FREE OR IF NULL IS OK
     fifo->buffer[fifo->start].array = NULL;
     fifo->buffer[fifo->start].size = 0;
+    // free(fifo->buffer[fifo->start].array);
 
+    // set the start to the next element in the buffer
     fifo->start = (fifo->start + 1) % fifo->buf_size;
+    // decrement the element count of the fifo
     fifo->count--;
     
-    pthread_mutex_unlock(&fifo->lock);
     pthread_cond_signal(&fifo->not_full);
+    pthread_mutex_unlock(&fifo->lock);
 
     return array;
 }

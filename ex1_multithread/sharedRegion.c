@@ -1,3 +1,12 @@
+/**
+ * @file sharedRegion.c
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-03-20
+ * 
+ * 
+ */
 #include "sharedRegion.h"
 #include "textProcessing.h"
 
@@ -7,7 +16,13 @@ pthread_mutex_t lockGetData, lockSaveData;
 
 void initializeSharedRegion(char **files, int numFiles) {
     //allocate memory for the shared region
+    
     filesData = (struct FileData *) malloc(numFiles * sizeof(struct FileData));
+    if (filesData == NULL) {
+    // handle the error
+    printf("Error: Unable to allocate memory for the shared region \n");
+    exit(1);
+    }
     totalFiles = numFiles;
 
     //initialize mutex locks for the shared region
@@ -43,12 +58,7 @@ void initializeSharedRegion(char **files, int numFiles) {
 void printFilesData() {
     for (int i = 0; i < totalFiles; i++) {
         printf("\n-------------------------------");
-        if(filesData[i].file == NULL){
-            printf("\nFile: %s\n", filesData[i].name);
-            printf("Error opening file: %s \n", filesData[i].name);
-            continue;
-        }
-        else if (filesData[i].corrupt == 1) {
+        if (filesData[i].corrupt == 1) {
             printf("\nFile: %s\n", filesData[i].name);
             printf("File %s is corrupt \n", filesData[i].name);
             continue;
@@ -145,14 +155,6 @@ int saveResults(struct Chunk *chunk) {
         printf("Error locking mutex in Save Results \n");
         return 0;
     }
-    //sets the data from the chunk to the file
-    //if the file is finished, chunk->finished = 1
-    // printf("ChunkFileID: %d\n", chunk->FileId);
-    // printf("ChunkSize: %d\n", chunk->size);
-    // printf("ChunkFinished: %d\n", chunk->finished);
-    // printf("ChunkData: %s\n", chunk->data);
-    // fflush(stdout);
-
 
     filesData[chunk->FileId].nWords += chunk->nWords;
 
@@ -171,79 +173,3 @@ void SignalCorruptFile(int FileId){
     filesData[FileId].corrupt = 1;
     filesData[FileId].finished = 1;
 }
-
-//!############ TESTING #########################
-
-// int main(int argc, char *argv[]) {
-//     //get text files from terminal
-//     char *files[1];
-//     files[0] = "dataSet1/asd.txt";
-//     // files[1] = "dataSet1/text0.txt";
-//     // files[2] = "dataSet1/text1.txt";
-//     //initialize the shared region
-
-//     initializeSharedRegion(files, 1);
-
-//     // for(int i = 0; i < 3; i++){
-//     //     printf("FileId: %d\n", filesData[i].id);
-//     //     printf("FileName: %s\n", filesData[i].name);
-//     //     printf("FileName: %p\n", filesData[i].file);
-//         // printf("finished: %d\n", filesData[i].finished);
-//         // printf("nWords: %d\n", filesData[i].nWords);
-//         // for(int j = 0; j < 5; j++){
-//         //     printf("nVowels[%d]: %d\n", j, filesData[i].nVowels[j]);
-//         // }
-//     // }
-//     struct Chunk chunk;
-//     //malloc the buffer
-//     chunk.data = malloc(CHUNKSIZE);
-//     chunk.size = 0;
-//     chunk.nWords = 0;
-//     chunk.finished = 0;
-//     chunk.FileId = -1;
-//     memset(chunk.data, 0, CHUNKSIZE);
-//     for(int j = 0; j < 6; j++){
-//         chunk.nVowels[j] = 0;
-//     }
-//     //get data from the file
-//     for (int i = 0; i < 1; i++){
-
-//         getData(&chunk);
-//         processChunk(&chunk);
-
-//         saveResults(&chunk);
-//         //reset chunk
-//         chunk.size = 0;
-//         chunk.nWords = 0;
-//         chunk.finished = 0;
-//         chunk.FileId = -1;
-//         memset(chunk.data, 0, CHUNKSIZE);
-//         for(int j = 0; j < 6; j++){
-//             chunk.nVowels[j] = 0;
-//         }
-//     }
-
-//     // //print chunk
-//     // printf("ChunkData: %s\n", chunk.data);
-//     // printf("ChunkSize: %d\n", chunk.size);
-//     // printf("ChunkFileID: %d\n", chunk.FileId);
-//     // printf("ChunkFinished: %d\n", chunk.finished);
-//     // printf("ChunknWords: %d\n", chunk.nWords);
-//     // for(int j = 0; j < 6; j++){
-//     //     printf("ChunknVowels[%d]: %d\n", j, chunk.nVowels[j]);
-//     // }
-//     // fflush(stdout);
-//     //print file data
-//     for(int i = 0; i < totalFiles; i++){
-//         printf("FileId: %d\n", filesData[i].id);
-//         printf("FileName: %s\n", filesData[i].name);
-//         printf("FileName: %p\n", filesData[i].file);
-//         printf("finished: %d\n", filesData[i].finished);
-//         printf("nWords: %d\n", filesData[i].nWords);
-//         for(int j = 0; j < 6; j++){
-//             printf("nVowels[%d]: %d\n", j, filesData[i].nVowels[j]);
-//         }
-//     }
-
-//     return 0;
-// }

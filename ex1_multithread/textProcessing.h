@@ -1,9 +1,12 @@
 /**
- * @file textProcessing.h (header file)
- * @brief Text processing functions
- * 
- * @author Bernardo Kaluza 97521
- * @author Alexandre Gago 98123
+ *  \file textProcessing.h (header file)
+ *
+ *  \brief Problem name: Text Processing.
+ *
+ *  Problem simulation parameters.
+ *
+ *  \author Alexandre Gago  - March 2023
+ *  \author Bernardo Kaluza - March 2023
  */
 
 #ifndef TEXT_PROCESSING_H

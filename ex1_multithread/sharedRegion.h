@@ -5,6 +5,18 @@
 #include "probConst.h"
 
 /**
+ *  \file sharedRegion.h (header file)
+ *
+ *  \brief Problem name: Text Processing.
+ *
+ *  Problem simulation parameters.
+ *
+ *  \author Alexandre Gago  - March 2023
+ *  \author Bernardo Kaluza - March 2023
+ */
+#ifndef SHARED_REGION_H
+#define SHARED_REGION_H
+/**
  * @brief 
  * Structure containing id,name and pointer to file and the number of words on the file and the number of words with each vowel
  */
@@ -82,3 +94,14 @@ extern int saveResults(struct Chunk *chunk);
  * @param fileId 
  */
 extern void SignalCorruptFile(int fileId);
+
+/**
+ * @brief 
+ * Set a File in the filesData array as finished and corrupt
+ * @param FileId 
+ * ID of the file to be set as finished and corrupt
+ */
+void SignalCorruptFile(int FileId);
+
+
+#endif

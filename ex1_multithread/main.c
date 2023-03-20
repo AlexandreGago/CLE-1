@@ -1,3 +1,15 @@
+/**
+ *  \file main.c 
+ *
+ *  \brief Problem name: Text Processing in Portuguese.
+ *
+ *  Main program.
+ *
+ *  \author Alexandre Gago 98123
+ *  \author Bernardo Kaluza 97521
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -11,7 +23,6 @@
 
 void *worker(void *arg);
 
-
 /**
  * @brief Main function of the program that counts the number of words and vowels in a text file provided
  * 
@@ -20,27 +31,60 @@ void *worker(void *arg);
  * @return int 
  */
 int main(int argc, char *argv[]) {
+
+    int nThreads = maxThreads;
+    int opt;
     //time the total timeof the program
     clock_t start, end;
     double cpu_time_used;
     start = clock();
 
-    //get text files from terminal
-    char *files[argc-1];
-    //read files from terminal
-    for (int i = 1; i < argc; i++) {
-        files[i-1] = argv[i];
-        printf("\nFile %d: %s, ", i, files[i-1]);
+    do
+    {
+        switch (opt = getopt(argc, argv, "t:h"))
+        {
+        case 't':
+            nThreads = atoi(optarg);
+            if (nThreads <= 0) {
+                printf("Invalid number of threads\n");
+                exit(1);
+            }
+            if (nThreads > maxThreads) {
+                printf("Number of threads is too large, max is %d\n", maxThreads);
+                exit(1);
+            }
+            break;
+        case 'h':
+            printf("Usage: %s [-t nThreads] file1 file2 file3 ...\n", argv[0]);
+            exit(0);
+
+        case '?':
+            printf("Invalid option\n");
+            printf("Usage: %s [-t nThreads] file1 file2 file3 ...\n", argv[0]);
+            exit(1);
+
+        }
+    } while (opt != -1);
+    
+    //files are provided after the options
+    if (argc - optind < 1) {
+        printf("No files provided\n");
+        printf("Usage: %s [-t nThreads] file1 file2 file3 ...\n", argv[0]);
+        exit(1);
+    }
+    char *files[argc-optind];
+    for (int i = optind; i < argc; i++) {
+        files[i-optind] = argv[i];
     }
 
     //initialize the shared region
-    initializeSharedRegion(files, argc-1);
+    initializeSharedRegion(files, argc-optind);
 
     //create workers
-    pthread_t workers[maxThreads];
-    unsigned int workerId[maxThreads];
+    pthread_t workers[nThreads];
+    unsigned int workerId[nThreads];
 
-    for (unsigned int i = 0; i < maxThreads; i++) {
+    for (unsigned int i = 0; i < nThreads; i++) {
         // printf("Creating thread %d\n", i);
         workerId[i] = i;
         if (pthread_create(&workers[i], NULL, worker, &workerId[i]) != 0) {
@@ -51,7 +95,7 @@ int main(int argc, char *argv[]) {
     }
 
     //join workers
-    for (unsigned int i = 0; i < maxThreads; i++) {
+    for (unsigned int i = 0; i < nThreads; i++) {
         if (pthread_join(workers[i], NULL) != 0) {
             printf("Error joining thread %d \n", i);
             exit(1);
@@ -63,6 +107,7 @@ int main(int argc, char *argv[]) {
 
     // free shared region
     freeSharedRegion();
+    
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("\nTotal time: %f seconds\n", cpu_time_used);
@@ -115,10 +160,6 @@ void *worker(void *ID) {
             SignalCorruptFile(chunk.FileId);
             return NULL;
         }
-        // else{
-        //     printf("Thread %d processed chunk of file %d of size %d name \n", *id, chunk.FileId, chunk.size);
-        //     fflush(stdout);
-        // }
 
         //save the results in the shared region
         if(!saveResults(&chunk)){

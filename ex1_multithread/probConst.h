@@ -1,11 +1,11 @@
 /**
  *  \file probConst.h (interface file)
  *
- *  \brief Problem name: Producers / Consumers.
+ *  \brief Problem name: Text Processing.
  *
  *  Problem simulation parameters.
  *
- *  \author António Rui Borges - March 2023
+ *  \author Alexandre Gago and Bernado Kaluza - March 2023
  */
 
 #ifndef PROBCONST_H_
@@ -13,13 +13,13 @@
 
 /* Generic parameters */
 
-/** \brief maximum number of producers / consumers */
-#define  maxThreads           1
+/** \brief maximum number of worker threads */
+#define  maxThreads           8
 
 /**
- * @brief Size of the total bytes of data each chunk will have
+ * @brief Size of the total bytes of data each chunk will have, default is 8192 bytes but can be changed by the user with the -s flag
  * 
  */
-#define CHUNKSIZE 40000
+#define CHUNKSIZE 8192
 
 #endif /* PROBCONST_H_ */
