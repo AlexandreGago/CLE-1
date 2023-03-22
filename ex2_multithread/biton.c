@@ -21,7 +21,6 @@ void bitonic_sort(int arr[], int size, int step_arg,bool ascending_arg) {
         for (int j = 0; j < size; j=j+step) {// loop of each ascending and descending step
             ascending = !ascending;
             curr_step_2 = step/2;
-            //!THREADS GO HERE
             if (ascending) {//unite the ascending and descending arrays in an ascending one
                 // printf("ascending\n");
                 int index=0,distance = curr_step_2;

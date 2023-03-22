@@ -13,6 +13,8 @@
 #include "probConst.h"
 #include "sharedRegion.h"
 
+extern int chunkSize;
+
 
 /**
  * @brief Get the decimal codepoint of the utf 8 character
@@ -230,29 +232,26 @@ int processChunk(struct Chunk *fileChunk) {
 
 int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
 
-    int n = fread(fileChunk->data, 1, CHUNKSIZE, fileData->file);
+    int n = fread(fileChunk->data, 1, chunkSize, fileData->file);
     // printf("Read %d bytes from file %s \n", n, fileData->name);
     //if error reading file
     if (n < 0) {
         printf("Error reading file %s, ignoring it \n", fileData->name);
         fileData->finished = 1;
-        fclose(fileData->file);
     }
     //if file is at the end we didn't cut words
     if (feof(fileData->file) || n == 0) {
         // printf("Finished reading file %s \n", fileData->name);
         fileData->finished = 1;
-        fclose(fileData->file);
         return n;
     }
     //if after reading we are at the end of file
-    if (n == CHUNKSIZE) {
+    if (n == chunkSize) {
         //see if next byte is EOF
         int c = fgetc(fileData->file);
         if (c == EOF) {
             // printf("Finished reading file %s \n", fileData->name);
             fileData->finished = 1;
-            fclose(fileData->file);
             return n;
         } else {
             //go back one byte
@@ -291,18 +290,10 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
 
             if (c != -1) {
                 if (isSepPunc(c)) {
-                    // printf("Found separator %d at position %d \n", c, n-1);
-                    //go back to the end of the separator
 
-                    // long pos = ftell(fileData->file);
-                    // printf("current position %ld \n", pos);
-                    // printf("copy %d \n", copy);
-                    // printf("n %d \n", n);
-                    // printf("seeking to %d \n", -1*(CHUNKSIZE-copy));
-
-                    fseek(fileData->file, -1 * (CHUNKSIZE - copy), SEEK_CUR);
+                    fseek(fileData->file, -1 * (chunkSize - copy), SEEK_CUR);
                     //clear fileChunkdata past the separator
-                    for (int i = copy; i < CHUNKSIZE; i++) {
+                    for (int i = copy; i < chunkSize; i++) {
                         fileChunk->data[i] = 0;
                     }
                     return n;
@@ -320,7 +311,6 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
     }
     printf("Failed to find a separator, ignoring file %s \n", fileData->name);
     fileData->finished = 1;
-    fclose(fileData->file);
     return 0;
 }
 

@@ -22,6 +22,7 @@
 #include <time.h>
 
 void *worker(void *arg);
+int chunkSize = CHUNKSIZE;
 
 /**
  * @brief Main function of the program that counts the number of words and vowels in a text file provided
@@ -30,10 +31,17 @@ void *worker(void *arg);
  * @param argv  the arguments
  * @return int 
  */
+
+void printUsage(char name[]) {
+
+    printf("Usage: %s [-t nThreads] [-s chunkSize] file1 file2 file3 ...\n", name);
+}
+
 int main(int argc, char *argv[]) {
 
     int nThreads = maxThreads;
     int opt;
+
     //time the total timeof the program
     clock_t start, end;
     double cpu_time_used;
@@ -41,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     do
     {
-        switch (opt = getopt(argc, argv, "t:h"))
+        switch (opt = getopt(argc, argv, "t:s:h"))
         {
         case 't':
             nThreads = atoi(optarg);
@@ -54,14 +62,30 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
             break;
+        case 's':
+            int argChunkSize = atoi(optarg);
+            //only valid values are 4 and 8
+            if (argChunkSize == 4) {
+                chunkSize = 4096;
+            } else if (argChunkSize == 8) {
+                chunkSize = 8192;
+            } else {
+                printf("Invalid chunk size, valid values are:\n 4 - 4096 bytes\n 8 - 8192 bytes\n");
+                printUsage(argv[0]);
+                exit(1);
+            }
+            break;
+
         case 'h':
-            printf("Usage: %s [-t nThreads] file1 file2 file3 ...\n", argv[0]);
+            printUsage(argv[0]);
             exit(0);
+            break;
 
         case '?':
             printf("Invalid option\n");
-            printf("Usage: %s [-t nThreads] file1 file2 file3 ...\n", argv[0]);
+            printUsage(argv[0]);
             exit(1);
+            break;
 
         }
     } while (opt != -1);
@@ -69,7 +93,7 @@ int main(int argc, char *argv[]) {
     //files are provided after the options
     if (argc - optind < 1) {
         printf("No files provided\n");
-        printf("Usage: %s [-t nThreads] file1 file2 file3 ...\n", argv[0]);
+        printUsage(argv[0]);
         exit(1);
     }
     char *files[argc-optind];
@@ -81,6 +105,7 @@ int main(int argc, char *argv[]) {
     initializeSharedRegion(files, argc-optind);
 
     //create workers
+    printf("Using %d thread(s)\n", nThreads);
     pthread_t workers[nThreads];
     unsigned int workerId[nThreads];
 

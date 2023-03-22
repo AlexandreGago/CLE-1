@@ -12,7 +12,7 @@
 void *worker(void *arg);
 void *distributor (void *arg);
 
-int numThreads = 8;
+int numThreads = 1;
 int buffersize = 1000;
 
 int main(int argc, char *argv[]) {
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
         free(array2.array);
     }
     array_t array3 = fifo_pop(getFifoSorted());
-
+    printf("array size: %d\n",array3.size);
     //check if array3 is sorted in crescent order
     bool crescent = true;
     for (int i = 0; i < array3.size-1; i++) {
