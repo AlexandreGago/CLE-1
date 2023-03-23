@@ -4,75 +4,74 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdbool.h>
-#include <getopt.h>
-#include "probConst.h"
-
+#include <math.h>
+#include "fifo.h"
 #include "sharedRegion.h"
 #include "merge.h"
-#include "fifo.h"
 
 void *worker(void *arg);
 void *distributor (void *arg);
 
-int nThreads = MAXTHREADS;
-int fifoSize = FIFO_SIZE;
+int numThreads = 1;
+int buffersize = 1000;
 
-void printUsage(char *programName) {
-    printf("Usage: %s [options] <file>\n", programName);
-    printf("Options:\n");
-    printf(" -t <n> : number of threads (default is %d)\n", MAXTHREADS);
-    printf(" -h : print this help message\n");
-}
 int main(int argc, char *argv[]) {
 
-    int start, end;
-    int opt;
 
-    do
-    {
-        switch (opt = getopt(argc, argv, "t:h"))
-        {
-        case 't':
-            nThreads = atoi(optarg);
-            //nThreads can only be 1,2,4,8
-            if (nThreads != 1 && nThreads != 2 && nThreads != 4 && nThreads != 8) {
-                printf("Invalid number of threads, valid values are:\n 1 - 1 thread\n 2 - 2 threads\n 4 - 4 threads\n 8 - 8 threads\n");
-                printUsage(argv[0]);
-                exit(1);
-            }
-            if (nThreads > MAXTHREADS) {
-                printf("Number of threads is too large, max is %d\n", MAXTHREADS);
-                exit(1);
-            }
-            break;
-        case 'h':
-            printUsage(argv[0]);
-            exit(0);
-            break;
-
-        case '?':
-            printf("Invalid option\n");
-            printUsage(argv[0]);
-            exit(1);
-            break;
-
-        }
-    } while (opt != -1);
-    //files are provided after the options
-    if (argc - optind < 1) {
-        printf("No files provided\n");
-        printUsage(argv[0]);
-        exit(1);
+    if (argc != 2) {
+        printf("Usage: %s <file>\n", argv[0]);
+        return 1;
     }
-    char *fileName = argv[optind];
-
-    start = clock();
 
     //initialize the shared region and the fifos
-    initializeSharedRegion(fifoSize,fileName); 
+    initializeSharedRegion(buffersize, argv[1]);
+
+    // //put arr in fifo_unsorted
+    // array_t *array1 = malloc(sizeof(array_t));
+    // array1->array = malloc(sizeof(int)*arr_size);
+    // array1->size = arr_size;
+    // for (int i = 0; i < arr_size; i++) {
+    //     array1->array[i] = arr[i];
+    // }
+
+    // fifo_push(fifo_unsorted, array1);
+    // //get arr from fifo and call mergeSortItr
+    // array_t array2 = fifo_pop(fifo_unsorted);
+
+    // mergeSortItr(array2.array, array2.size);
+    
+    // fifo_push(fifo_sorted, &array2);
+
+    // array_t array3 = fifo_pop(fifo_sorted);
+    
+    // //chec if array3 == arr
+    // mergeSortItr(arr, arr_size);
+    // bool equal = true;
+    // for (int i = 0; i < array3.size; i++) {
+    //     if (array3.array[i] != arr[i]) {
+    //         equal = false;
+    //     }
+    // }
+    // if (equal) {
+    //     printf("Array is equal\n");
+    // } else {
+    //     printf("Array is not equal\n");
+    // }
+    // check if array3 is sorted in crescent order
+    // bool crescent = true;
+    // for (int i = 0; i < array3.size-1; i++) {
+    //     if (array3.array[i] > array3.array[i+1]) {
+    //         crescent = false;
+    //     }
+    // }
+    // if (crescent) {
+    //     printf("Array is sorted in crescent order\n");
+    // } else {
+    //     printf("Array is not sorted in crescent order\n");
+    // }
     pthread_t distributor_thread;
-    pthread_t workers[nThreads];
-    unsigned int workerId[nThreads];
+    pthread_t workers[numThreads];
+    unsigned int workerId[numThreads];
 
     //create distributor thread
     if (pthread_create(&distributor_thread, NULL, distributor, NULL) != 0) {
@@ -81,7 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
     //create worker threads
-    for (int i = 0; i < nThreads; i++) {
+    for (int i = 0; i < numThreads; i++) {
         workerId[i] = i;
         if (pthread_create(&workers[i], NULL, worker, &workerId[i]) != 0) {
             printf("Error creating worker thread \n");
@@ -95,14 +94,16 @@ int main(int argc, char *argv[]) {
     }
 
     //wait for worker threads to finish
-    for (int i = 0; i < nThreads; i++) {
+    for (int i = 0; i < numThreads; i++) {
         if (pthread_join(workers[i], NULL) != 0) {
             printf("Error joining worker thread \n");
             exit(EXIT_FAILURE);
         }
     }
+    printf("All threads finished\n");
+    fflush(stdout);
     //merge the sorted subarrays
-    for(int i=0;i<nThreads-1;i++){
+    for(int i=0;i<numThreads-1;i++){
         // printf("Merge %d\n",i);
         array_t array1 = fifo_pop(getFifoSorted());
         array_t array2 = fifo_pop(getFifoSorted());
@@ -123,10 +124,12 @@ int main(int argc, char *argv[]) {
         array4->array = array3;
         array4->size = array1.size+array2.size;
         fifo_push(getFifoSorted(),array4);
+        // printf("\n\n");
         free(array1.array);
         free(array2.array);
     }
     array_t array3 = fifo_pop(getFifoSorted());
+    printf("array size: %d\n",array3.size);
     //check if array3 is sorted in crescent order
     bool crescent = true;
     for (int i = 0; i < array3.size-1; i++) {
@@ -145,10 +148,7 @@ int main(int argc, char *argv[]) {
     // free(fifo_unsorted);
     // free(fifo_sorted);
 
-    end = clock();
-    float cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time elapsed: %f seconds\n", cpu_time_used);
-    printf("All threads finished\n");
+
     return 0;
 }
 
@@ -157,6 +157,7 @@ void *worker(void *arg) {
     printf("Thread worker %d created \n", *id);
     //while (true) {
     array_t array = fifo_pop(getFifoUnsorted());
+
     mergeSortItr(array.array, array.size);
     fifo_push(getFifoSorted(), &array);
     //}
@@ -191,21 +192,25 @@ void *distributor (void *arg){
     fclose(f);
 
     //printf("Array read from file %s   \n", filename);
+    //printarray(arr, arr_size);
 
-    for (int i=0;i<nThreads;i++){
+    for (int i=0;i<numThreads;i++){
         array_t *arr1 = malloc(sizeof(array_t));
-        arr1->array = malloc(sizeof(int)*(arr_size/nThreads));
-        arr1->size = arr_size/nThreads;
+        arr1->array = malloc(sizeof(int)*(arr_size/numThreads));
+        arr1->size = arr_size/numThreads;
         //copy the elements of arr to arr1
         for (int j=0;j<arr1->size;j++){
             arr1->array[j] = arr[i*arr1->size+j];
         }
             //print the subarrays
         //printf("Subarray %d   \n", i);
+        //printarray(arr1->array, arr1->size);
         //put the subarrays in the fifo
         fifo_push(getFifoUnsorted(), arr1); 
         
     }
+
+
     return NULL;
 
 }

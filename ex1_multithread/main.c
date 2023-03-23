@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "sharedRegion.h"
 #include "probConst.h"
@@ -39,13 +40,12 @@ void printUsage(char name[]) {
 
 int main(int argc, char *argv[]) {
 
-    int nThreads = maxThreads;
+    int nThreads = MAXTHREADS;
     int opt;
 
     //time the total timeof the program
     clock_t start, end;
     double cpu_time_used;
-    start = clock();
 
     do
     {
@@ -57,8 +57,8 @@ int main(int argc, char *argv[]) {
                 printf("Invalid number of threads\n");
                 exit(1);
             }
-            if (nThreads > maxThreads) {
-                printf("Number of threads is too large, max is %d\n", maxThreads);
+            if (nThreads > MAXTHREADS) {
+                printf("Number of threads is too large, max is %d\n", MAXTHREADS);
                 exit(1);
             }
             break;
@@ -101,6 +101,7 @@ int main(int argc, char *argv[]) {
         files[i-optind] = argv[i];
     }
 
+    start = clock();
     //initialize the shared region
     initializeSharedRegion(files, argc-optind);
 
@@ -155,14 +156,14 @@ void *worker(void *ID) {
     //malloc the buffer
     if ((chunk.data = malloc(CHUNKSIZE)) == NULL) {
         printf("Error allocating memory in thread %d, exiting thread.\n", *id);
-        return NULL;
+        pthread_exit(NULL);
     }
     chunk.size = 0;
     chunk.nWords = 0;
     chunk.FileId = -1;
     if (memset(chunk.data, 0, CHUNKSIZE) == NULL) {
         printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
-        return NULL;
+        pthread_exit(NULL);
     }
     for (int j = 0; j < 6; j++) {
         chunk.nVowels[j] = 0;
@@ -176,21 +177,24 @@ void *worker(void *ID) {
         //get data from the file
         if(getData(&chunk) != 0){
             printf("Error getting data in thread %d ,exiting thread.\n", *id);
-            return NULL;
+            pthread_exit(NULL);
         }
 
         //process the chunk
         if(processChunk(&chunk) != 0){
-            printf("Error processing chunk in thread %d ,exiting thread.\n", *id);
+            printf("Error processing chunk in thread %d , ignoring file.\n", *id);
             SignalCorruptFile(chunk.FileId);
-            return NULL;
+            
+        }
+        else {
+            //save the results in the shared region
+            if(saveResults(&chunk) != 0){
+                printf("Error saving results in thread %d ,exiting program.\n", *id);
+                exit(1);
+            }
         }
 
-        //save the results in the shared region
-        if(saveResults(&chunk) != 0){
-            printf("Error saving results in thread %d ,exiting thread.\n", *id);
-            return NULL;
-        }
+        
 
         //reset chunk
         chunk.size = 0;
@@ -199,7 +203,7 @@ void *worker(void *ID) {
         if (memset(chunk.data, 0, CHUNKSIZE) == NULL) {
             printf("Error clearing memory in thread %d ,exiting thread.\n", *id);
             free(chunk.data);
-            return NULL;
+            pthread_exit(NULL);
         }
         for (int j = 0; j < 6; j++) {
             chunk.nVowels[j] = 0;
