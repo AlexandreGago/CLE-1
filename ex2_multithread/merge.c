@@ -1,9 +1,32 @@
+/**
+ * @file merge.c
+ * @brief Functions to perform iterative merge sort.
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
+ */
+
+
 #include "merge.h"
 #include <time.h>
 
+
+/**
+ * @brief Returns the minimum of two integers.
+ * 
+ * @param x The first integer.
+ * @param y The second integer.
+ * @return The minimum of x and y.
+ */
 int min(int x, int y) { return (x<y)? x :y; }
+
 void mergeItr(int arr[], int l, int m, int r);
 
+/**
+ * @brief Sorts an array using an iterative merge sort algorithm.
+ * 
+ * @param arr[] The array to be sorted.
+ * @param n The size of the array.
+ */
 void mergeSortItr(int arr[], int n)
 {
    int curr_size;  // For current size of subarrays to be merged
@@ -29,7 +52,17 @@ void mergeSortItr(int arr[], int n)
        }
    }
 }
-/* Function to merge the two haves arr[l..m] and arr[m+1..r] of array arr[] */
+
+/**
+ * @brief Merges two sorted subarrays of a given array.
+ * 
+ * The subarrays are defined as arr[l..m] and arr[m+1..r].
+ * 
+ * @param arr[] The array containing the subarrays to be merged.
+ * @param l The starting index of the first subarray.
+ * @param m The ending index of the first subarray.
+ * @param r The ending index of the second subarray.
+ */
 void mergeItr(int arr[], int l, int m, int r)
 {
     int i, j, k;

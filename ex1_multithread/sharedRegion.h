@@ -54,7 +54,7 @@ struct Chunk
  * 
  * @param numFiles Total number of the files given
  */
-extern void initializeSharedRegion(char** files, int numFiles);
+extern int initializeSharedRegion(char** files, int numFiles);
 /**
  * @brief 
  * Funtion that serves to print the data of the filesData array
@@ -65,7 +65,7 @@ extern void printFilesData();
  * @brief 
  * Funtion that serves to free the memory allocated in the shared region
  */
-extern void freeSharedRegion();
+extern int freeSharedRegion();
 
 /**
  * @brief 
@@ -90,18 +90,11 @@ extern int saveResults(struct Chunk *chunk);
 
 /**
  * @brief 
- * 
- * @param fileId 
- */
-extern void SignalCorruptFile(int fileId);
-
-/**
- * @brief 
  * Set a File in the filesData array as finished and corrupt
  * @param FileId 
  * ID of the file to be set as finished and corrupt
  */
-void SignalCorruptFile(int FileId);
+extern void SignalCorruptFile(int fileId);
 
 
 #endif

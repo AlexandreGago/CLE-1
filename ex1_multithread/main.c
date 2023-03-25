@@ -26,7 +26,7 @@ void *worker(void *arg);
 int chunkSize = CHUNKSIZE;
 
 /**
- * @brief Main function of the program that counts the number of words and vowels in a text file provided
+ * @brief Main function of the program that counts the number of words and vowels in given text files. 
  * 
  * @param argc the number of arguments
  * @param argv  the arguments
@@ -34,7 +34,6 @@ int chunkSize = CHUNKSIZE;
  */
 
 void printUsage(char name[]) {
-
     printf("Usage: %s [-t nThreads] [-s chunkSize] file1 file2 file3 ...\n", name);
 }
 
@@ -106,7 +105,10 @@ int main(int argc, char *argv[]) {
     }
 
     //initialize the shared region
-    initializeSharedRegion(files, argc-optind);
+    if(initializeSharedRegion(files, argc-optind)){
+        printf("Error initializing shared region\n");
+        exit(1);
+    }
 
     //create workers
     printf("Using %d thread(s)\n", nThreads);
@@ -131,19 +133,22 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    //stop the timer
     if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
         perror("clock_gettime");
-        return 1;
+        exit(1);
     }
     //print results
     printFilesData();
 
     // free shared region
-    freeSharedRegion();
+    if(!freeSharedRegion()){
+        printf("Error freeing shared region\n");
+        exit(1);
+    }
     
     double elapsed_time = (double) (end_time.tv_sec - start_time.tv_sec) + (double) (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
     printf("Time elapsed: %f seconds\n", elapsed_time); 
-
 }
 
 /**
@@ -156,7 +161,6 @@ void *worker(void *ID) {
 
     //save the id of the thread
     int *id = ID;
-
     //create a chunk to work with
     struct Chunk chunk;
     //malloc the buffer
@@ -178,8 +182,6 @@ void *worker(void *ID) {
     //while there are files to process
     while (!allFilesFinished()) {
 
-        // printf("Thread %d getting data  \n", *id);
-
         //get data from the file
         if(getData(&chunk) != 0){
             printf("Error getting data in thread %d ,exiting thread.\n", *id);
@@ -199,9 +201,6 @@ void *worker(void *ID) {
                 exit(1);
             }
         }
-
-        
-
         //reset chunk
         chunk.size = 0;
         chunk.nWords = 0;
@@ -214,7 +213,6 @@ void *worker(void *ID) {
         for (int j = 0; j < 6; j++) {
             chunk.nVowels[j] = 0;
         }
-        // sleep(1);
     }
     //free the chunk data
     free(chunk.data);

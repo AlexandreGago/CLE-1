@@ -3,8 +3,6 @@
  * @author Bernardo Kaluza 97521
  * @author Alexandre Gago 98123
  * @brief Problem name: Text Processing in Portuguese
- * @date 2023-03-10
- * @copyright Copyright (c) 2023
  * 
  */
 
@@ -12,17 +10,10 @@
 #include <stdbool.h>
 #include "probConst.h"
 #include "sharedRegion.h"
+#include "textProcessing.h"
 
 extern int chunkSize;
 
-
-/**
- * @brief Get the decimal codepoint of the utf 8 character
- * 
- * @param buffer the buffer of bytes to read from
- * @param index the index of the buffer to start reading on
- * @return int the decimal codepoint of the utf 8 character
- */
 int getChar(unsigned char *buffer, int *index) {
     int c;
     //check if first bit is 0
@@ -233,7 +224,6 @@ int processChunk(struct Chunk *fileChunk) {
 int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
 
     int n = fread(fileChunk->data, 1, chunkSize, fileData->file);
-    // printf("Read %d bytes from file %s \n", n, fileData->name);
     //if error reading file
     if (n < 0) {
         printf("Error reading file %s, ignoring it \n", fileData->name);
@@ -241,7 +231,6 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
     }
     //if file is at the end we didn't cut words
     if (feof(fileData->file) || n == 0) {
-        // printf("Finished reading file %s \n", fileData->name);
         fileData->finished = 1;
         return n;
     }
@@ -250,13 +239,11 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
         //see if next byte is EOF
         int c = fgetc(fileData->file);
         if (c == EOF) {
-            // printf("Finished reading file %s \n", fileData->name);
             fileData->finished = 1;
             return n;
         } else {
             //go back one byte
             fseek(fileData->file, -1, SEEK_CUR);
-            // printf("Last byte is not EOF, checking if it is a UTF-8 character \n");
             //reset EOF flag
             clearerr(fileData->file);
         }
@@ -269,8 +256,6 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
     //check if last read is 1 byte separator
     if ((fileChunk->data[n - 1] & 0b10000000) == 0) {
         int c = getChar(fileChunk->data, &copy);
-
-        // printf("first check\n %d \n", c);
 
         if (c != -1) {
             if (isSepPunc(c)) {
@@ -285,8 +270,6 @@ int readToChunk(struct FileData *fileData, struct Chunk *fileChunk) {
             ((fileChunk->data[n - 1] & 0b11110000) == 0b11100000)) {
             copy = n - 1;
             int c = getChar(fileChunk->data, &copy);
-
-            // printf("\n %d \n", c);
 
             if (c != -1) {
                 if (isSepPunc(c)) {

@@ -1,0 +1,93 @@
+\hypertarget{merge_8c}{}\doxysection{merge.\+c File Reference}
+\label{merge_8c}\index{merge.c@{merge.c}}
+
+
+Functions to perform iterative merge sort.  
+
+
+{\ttfamily \#include \char`\"{}merge.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$time.\+h$>$}\newline
+Include dependency graph for merge.\+c\+:
+% FIG 0
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{merge_8c_aebfa23dbf6ec30f35f2986a654bd47c1}{min}} (int x, int y)
+\begin{DoxyCompactList}\small\item\em Returns the minimum of two integers. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{merge_8c_a2eb320dcbb95cad76eaf2c0e5a05fa43}{merge\+Itr}} (int arr\mbox{[}$\,$\mbox{]}, int l, int m, int r)
+\begin{DoxyCompactList}\small\item\em Merges two sorted subarrays of a given array. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{merge_8c_a60eaa9cb3b47e947d00f603f4a9e5e4e}{merge\+Sort\+Itr}} (int arr\mbox{[}$\,$\mbox{]}, int n)
+\begin{DoxyCompactList}\small\item\em Sorts an array using an iterative merge sort algorithm. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Functions to perform iterative merge sort. 
+
+\begin{DoxyAuthor}{Author}
+Bernardo Kaluza 
+
+Alexandre Gago 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{merge_8c_a2eb320dcbb95cad76eaf2c0e5a05fa43}\label{merge_8c_a2eb320dcbb95cad76eaf2c0e5a05fa43}} 
+\index{merge.c@{merge.c}!mergeItr@{mergeItr}}
+\index{mergeItr@{mergeItr}!merge.c@{merge.c}}
+\doxysubsubsection{\texorpdfstring{mergeItr()}{mergeItr()}}
+{\footnotesize\ttfamily void merge\+Itr (\begin{DoxyParamCaption}\item[{int}]{arr\mbox{[}$\,$\mbox{]},  }\item[{int}]{l,  }\item[{int}]{m,  }\item[{int}]{r }\end{DoxyParamCaption})}
+
+
+
+Merges two sorted subarrays of a given array. 
+
+The subarrays are defined as arr\mbox{[}l..m\mbox{]} and arr\mbox{[}m+1..r\mbox{]}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em arr\mbox{[}$\,$\mbox{]}} & The array containing the subarrays to be merged. \\
+\hline
+{\em l} & The starting index of the first subarray. \\
+\hline
+{\em m} & The ending index of the first subarray. \\
+\hline
+{\em r} & The ending index of the second subarray. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{merge_8c_a60eaa9cb3b47e947d00f603f4a9e5e4e}\label{merge_8c_a60eaa9cb3b47e947d00f603f4a9e5e4e}} 
+\index{merge.c@{merge.c}!mergeSortItr@{mergeSortItr}}
+\index{mergeSortItr@{mergeSortItr}!merge.c@{merge.c}}
+\doxysubsubsection{\texorpdfstring{mergeSortItr()}{mergeSortItr()}}
+{\footnotesize\ttfamily void merge\+Sort\+Itr (\begin{DoxyParamCaption}\item[{int}]{arr\mbox{[}$\,$\mbox{]},  }\item[{int}]{n }\end{DoxyParamCaption})}
+
+
+
+Sorts an array using an iterative merge sort algorithm. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em arr\mbox{[}$\,$\mbox{]}} & The array to be sorted. \\
+\hline
+{\em n} & The size of the array. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{merge_8c_aebfa23dbf6ec30f35f2986a654bd47c1}\label{merge_8c_aebfa23dbf6ec30f35f2986a654bd47c1}} 
+\index{merge.c@{merge.c}!min@{min}}
+\index{min@{min}!merge.c@{merge.c}}
+\doxysubsubsection{\texorpdfstring{min()}{min()}}
+{\footnotesize\ttfamily int min (\begin{DoxyParamCaption}\item[{int}]{x,  }\item[{int}]{y }\end{DoxyParamCaption})}
+
+
+
+Returns the minimum of two integers. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em x} & The first integer. \\
+\hline
+{\em y} & The second integer. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The minimum of x and y. 
+\end{DoxyReturn}

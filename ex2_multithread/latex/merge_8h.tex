@@ -1,0 +1,77 @@
+\hypertarget{merge_8h}{}\doxysection{merge.\+h File Reference}
+\label{merge_8h}\index{merge.h@{merge.h}}
+
+
+Text processing functions.  
+
+
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+Include dependency graph for merge.\+h\+:
+% FIG 0
+This graph shows which files directly or indirectly include this file\+:
+% FIG 1
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{merge_8h_a60eaa9cb3b47e947d00f603f4a9e5e4e}{merge\+Sort\+Itr}} (int arr\mbox{[}$\,$\mbox{]}, int n)
+\begin{DoxyCompactList}\small\item\em Sorts an array using an iterative merge sort algorithm. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{merge_8h_a2eb320dcbb95cad76eaf2c0e5a05fa43}{merge\+Itr}} (int arr\mbox{[}$\,$\mbox{]}, int l, int m, int r)
+\begin{DoxyCompactList}\small\item\em Merges two sorted subarrays of a given array. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Text processing functions. 
+
+(header file)
+
+\begin{DoxyAuthor}{Author}
+Bernardo Kaluza 97521 
+
+Alexandre Gago 98123 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{merge_8h_a2eb320dcbb95cad76eaf2c0e5a05fa43}\label{merge_8h_a2eb320dcbb95cad76eaf2c0e5a05fa43}} 
+\index{merge.h@{merge.h}!mergeItr@{mergeItr}}
+\index{mergeItr@{mergeItr}!merge.h@{merge.h}}
+\doxysubsubsection{\texorpdfstring{mergeItr()}{mergeItr()}}
+{\footnotesize\ttfamily void merge\+Itr (\begin{DoxyParamCaption}\item[{int}]{arr\mbox{[}$\,$\mbox{]},  }\item[{int}]{l,  }\item[{int}]{m,  }\item[{int}]{r }\end{DoxyParamCaption})}
+
+
+
+Merges two sorted subarrays of a given array. 
+
+The subarrays are defined as arr\mbox{[}l..m\mbox{]} and arr\mbox{[}m+1..r\mbox{]}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em arr\mbox{[}$\,$\mbox{]}} & The array containing the subarrays to be merged. \\
+\hline
+{\em l} & The starting index of the first subarray. \\
+\hline
+{\em m} & The ending index of the first subarray. \\
+\hline
+{\em r} & The ending index of the second subarray. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{merge_8h_a60eaa9cb3b47e947d00f603f4a9e5e4e}\label{merge_8h_a60eaa9cb3b47e947d00f603f4a9e5e4e}} 
+\index{merge.h@{merge.h}!mergeSortItr@{mergeSortItr}}
+\index{mergeSortItr@{mergeSortItr}!merge.h@{merge.h}}
+\doxysubsubsection{\texorpdfstring{mergeSortItr()}{mergeSortItr()}}
+{\footnotesize\ttfamily void merge\+Sort\+Itr (\begin{DoxyParamCaption}\item[{int}]{arr\mbox{[}$\,$\mbox{]},  }\item[{int}]{n }\end{DoxyParamCaption})}
+
+
+
+Sorts an array using an iterative merge sort algorithm. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em arr\mbox{[}$\,$\mbox{]}} & The array to be sorted. \\
+\hline
+{\em n} & The size of the array. \\
+\hline
+\end{DoxyParams}

@@ -29,33 +29,33 @@ typedef struct {
 } fifo_t;
 
 /**
- * @brief Initializes the FIFO buffer.
+ * @brief Initialize the FIFO
  * 
- * @param fifo Pointer to the FIFO buffer.
- * @param buffer_size Size of the buffer.
+ * @param fifo Pointer to the FIFO
+ * @param buffer_size Size of the buffer
  */
 void fifo_init(fifo_t *fifo, int buffer_size);
 
 /**
- * @brief Adds an array to the FIFO buffer.
+ * @brief Push an array into the FIFO
  * 
- * @param fifo Pointer to the FIFO buffer.
- * @param array Pointer to the array.
+ * @param fifo Pointer to the FIFO
+ * @param array Pointer to the array
  */
 void fifo_push(fifo_t *fifo, array_t* array);
 
 /**
- * @brief Removes an array from the FIFO buffer.
+ * @brief Pop the first array from the FIFO
  * 
- * @param fifo Pointer to the FIFO buffer.
- * @return The array removed from the buffer.
+ * @param fifo Pointer to the FIFO
+ * @return array_t the first array in the FIFO
  */
 array_t fifo_pop(fifo_t *fifo);
 
 /**
- * @brief Destroys the FIFO buffer.
+ * @brief Frees the FIFO buffer and destroys the mutex and condition variables
  * 
- * @param fifo Pointer to the FIFO buffer.
+ * @param fifo 
  */
 void fifo_destroy(fifo_t *fifo);
 

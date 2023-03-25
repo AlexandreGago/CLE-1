@@ -3,6 +3,9 @@
         "*.tcc": "c",
         "typeinfo": "c",
         "probconst.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "stdbool.h": "c",
+        "fifo.h": "c",
+        "getopt.h": "c"
     }
 }

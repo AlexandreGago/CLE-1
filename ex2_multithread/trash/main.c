@@ -13,18 +13,9 @@
 
 void *worker(void *arg);
 void *distributor (void *arg);
+
 int nThreads = MAXTHREADS;
 int fifoSize = FIFO_SIZE;
-//barrier for the worker threads
-pthread_barrier_t barrier;
-
-typedef struct {
-    int workerId;
-    int nThreads;
-    fifo_t* fifo_unsorted;
-    fifo_t* fifo_sorted;
-
-} WorkerArgs;
 
 void printUsage(char *programName) {
     printf("Usage: %s [options] <file>\n", programName);
@@ -80,35 +71,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //initialize the shared region, and the barrier
+    //initialize the shared region and the fifos
     initializeSharedRegion(fifoSize,fileName); 
-    if (pthread_barrier_init(&barrier, NULL, nThreads) != 0) {
-        perror("pthread_barrier_init");
-        return 1;
-    }
-
-
     pthread_t distributor_thread;
     pthread_t workers[nThreads];
-    WorkerArgs args[nThreads];
+    unsigned int workerId[nThreads];
 
     //create distributor thread
     if (pthread_create(&distributor_thread, NULL, distributor, NULL) != 0) {
         printf("Error creating distributor thread \n");
         exit(EXIT_FAILURE);
     }
+
     //create worker threads
     for (int i = 0; i < nThreads; i++) {
-
-        args[i].workerId = i;
-        args[i].nThreads = nThreads;
-        args[i].fifo_unsorted = getFifoUnsorted();
-        args[i].fifo_sorted = getFifoSorted();
-        
-
-
-
-        if (pthread_create(&workers[i], NULL, worker, &args[i]) != 0) {
+        workerId[i] = i;
+        if (pthread_create(&workers[i], NULL, worker, &workerId[i]) != 0) {
             printf("Error creating worker thread \n");
             exit(EXIT_FAILURE);
         }
@@ -126,12 +104,41 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
     }
+    //merge the sorted subarrays
+    for(int i=0;i<nThreads-1;i++){
+        // printf("Merge %d\n",i);
+        array_t array1 = fifo_pop(getFifoSorted());
+        array_t array2 = fifo_pop(getFifoSorted());
+        //unite the two arrays
+        int* array3 = malloc(sizeof(int)*(array1.size+array2.size));
+        //copy the array1 and array2 in array3
+        for(int j=0;j<array1.size;j++){
+            array3[j] = array1.array[j];
+        }
+        for(int j=0;j<array2.size;j++){
+            array3[array1.size+j] = array2.array[j];
+        }
+        //merge the two arrays
+        mergeItr(array3,0,array1.size-1,array1.size+array2.size-1);
+        
+        //put the array in the fifo_sorted
+        array_t *array4 = malloc(sizeof(array_t));
+        array4->array = array3;
+        array4->size = array1.size+array2.size;
+        fifo_push(getFifoSorted(),array4);
+        free(array1.array);
+        free(array2.array);
+    }
 
 
+
+    if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
+        perror("clock_gettime");
+        return 1;
+    }
 
 
     array_t array3 = fifo_pop(getFifoSorted());
-    // printf("array3 size: %d\n", array3.size);
     //check if array3 is sorted in crescent order
     bool crescent = true;
     for (int i = 0; i < array3.size-1; i++) {
@@ -147,10 +154,6 @@ int main(int argc, char *argv[]) {
 
 
     freeSharedRegion();
-    if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
-        perror("clock_gettime");
-        return 1;
-    }
     // free(fifo_unsorted);
     // free(fifo_sorted);
 
@@ -161,58 +164,14 @@ int main(int argc, char *argv[]) {
 }
 
 void *worker(void *arg) {
-    WorkerArgs *args = (WorkerArgs *) arg;
-    int *id = &args->workerId;
-    int nThreads = args->nThreads;
-
-
+    int *id = (int *)arg;
     printf("Thread worker %d created \n", *id);
     //while (true) {
-    array_t array = fifo_pop(args->fifo_unsorted);
-    // printf("Thread worker %d is sorting an array of size %d \n", *id, array.size);
+    array_t array = fifo_pop(getFifoUnsorted());
     mergeSortItr(array.array, array.size);
-    fifo_push(args->fifo_sorted, &array);
-    // printf("Thread worker %d finished sorting an array of size %d \n", *id, array.size);
-    
-    //wait for all threads to finish
-    pthread_barrier_wait(&barrier);
-    if (nThreads == 1) {
-        return NULL;
-    }
-    else {
-        array_t array3;
-        nThreads = nThreads / 2;
-        while (nThreads > 0)
-        {
-            if (*id <= nThreads-1) {
-                array_t array1 = fifo_pop(args->fifo_sorted);
-                array_t array2 = fifo_pop(args->fifo_sorted);
-                //unite the two arrays
-                array3.array = malloc(sizeof(int)*(array1.size+array2.size));
-                array3.size = array1.size+array2.size;
-                //copy the array1 and array2 in array3
-                for(int j=0;j<array1.size;j++){
-                    array3.array[j] = array1.array[j];
-                }
-                for(int j=0;j<array2.size;j++){
-                    array3.array[array1.size+j] = array2.array[j];
-                }
-                //merge the two arrays
-                mergeItr(array3.array,0,array1.size-1,array1.size+array2.size-1);
-
-            }
-            // printf("Thread %d waiting for all threads to finish \n", *id);
-            pthread_barrier_wait(&barrier);
-            if (*id <= nThreads-1) {
-                fifo_push(args->fifo_sorted, &array3);
-            }
-            nThreads = nThreads / 2;
-            
-        }
-        return NULL;
-        
-
-    }
+    fifo_push(getFifoSorted(), &array);
+    //}
+    return NULL;
 }
 
 
@@ -255,7 +214,8 @@ void *distributor (void *arg){
             //print the subarrays
         //printf("Subarray %d   \n", i);
         //put the subarrays in the fifo
-        fifo_push(getFifoUnsorted(), arr1);         
+        fifo_push(getFifoUnsorted(), arr1); 
+        
     }
     return NULL;
 

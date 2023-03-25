@@ -1,0 +1,136 @@
+\hypertarget{main_8c}{}\doxysection{main.\+c File Reference}
+\label{main_8c}\index{main.c@{main.c}}
+
+
+Main file for the second problem.  
+
+
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$pthread.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include $<$time.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \#include $<$getopt.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}prob\+Const.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}shared\+Region.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}merge.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}fifo.\+h\char`\"{}}\newline
+Include dependency graph for main.\+c\+:
+% FIG 0
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structWorkerArgs}{Worker\+Args}}
+\begin{DoxyCompactList}\small\item\em A struct containing the arguments for worker threads. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \mbox{\hyperlink{main_8c_a15b16453216ed29570af03009e7c7c63}{worker}} (void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em worker life cycle \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{main_8c_a4bc7d5acdee9ab8929719f3670135ca3}{distributor}} (void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em distributor life cycle \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{main_8c_ae9b016d10430b4f8e7b58770f522f8be}{print\+Usage}} (char $\ast$program\+Name)
+\begin{DoxyCompactList}\small\item\em Prints the usage of the program. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a0ddf1224851353fc92bfbff6f499fa97}{main}} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em The main function of the multi-\/threaded merge sort program. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_8c_a8adda9db6d1fb7be6f86999c24c75ab0}\label{main_8c_a8adda9db6d1fb7be6f86999c24c75ab0}} 
+int \mbox{\hyperlink{main_8c_a8adda9db6d1fb7be6f86999c24c75ab0}{n\+Threads}} = \mbox{\hyperlink{probConst_8h_ab9eade334fd8a98c128802aec7e9191c}{MAXTHREADS}}
+\begin{DoxyCompactList}\small\item\em The number of worker threads to be used for sorting. Default is MAXTHREADS. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{main_8c_ad98ec23755377c7970c65b6fbb384752}\label{main_8c_ad98ec23755377c7970c65b6fbb384752}} 
+int \mbox{\hyperlink{main_8c_ad98ec23755377c7970c65b6fbb384752}{fifo\+Size}} = \mbox{\hyperlink{probConst_8h_a6092455278a1ac67204e0dbe08f9d13f}{FIFO\+\_\+\+SIZE}}
+\begin{DoxyCompactList}\small\item\em The size of the FIFO buffers to be used. Default is FIFO\+\_\+\+SIZE. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{main_8c_a779bfbbb688cf46720cfb65109ea4858}\label{main_8c_a779bfbbb688cf46720cfb65109ea4858}} 
+pthread\+\_\+barrier\+\_\+t \mbox{\hyperlink{main_8c_a779bfbbb688cf46720cfb65109ea4858}{barrier}}
+\begin{DoxyCompactList}\small\item\em A pthread\+\_\+barrier\+\_\+t variable used to synchronize worker threads. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Main file for the second problem. 
+
+This program reads an array from a file and sorts it using a multi-\/threaded merge sort algorithm. The number of threads to be used can be specified as a command line argument. \begin{DoxyAuthor}{Author}
+Bernardo Kaluza 
+
+Alexandre Gago 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{main_8c_a4bc7d5acdee9ab8929719f3670135ca3}\label{main_8c_a4bc7d5acdee9ab8929719f3670135ca3}} 
+\index{main.c@{main.c}!distributor@{distributor}}
+\index{distributor@{distributor}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{distributor()}{distributor()}}
+{\footnotesize\ttfamily void $\ast$ distributor (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+
+
+
+distributor life cycle 
+
+The distributor function that reads the input file and distributes the data to worker threads.
+
+
+\begin{DoxyParams}{Parameters}
+{\em arg} & NULL \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+NULL 
+\end{DoxyReturn}
+\mbox{\Hypertarget{main_8c_a0ddf1224851353fc92bfbff6f499fa97}\label{main_8c_a0ddf1224851353fc92bfbff6f499fa97}} 
+\index{main.c@{main.c}!main@{main}}
+\index{main@{main}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$}]{argv\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})}
+
+
+
+The main function of the multi-\/threaded merge sort program. 
+
+Initializes the shared region, creates the distributor and worker threads, and waits for them to finish. Finally, it validates if the final array is sorted. 
+\begin{DoxyParams}{Parameters}
+{\em argc} & The number of command line arguments. \\
+\hline
+{\em argv} & An array of command line argument strings. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns 0 if the program runs successfully, and 1 if there\textquotesingle{}s an error. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{main_8c_ae9b016d10430b4f8e7b58770f522f8be}\label{main_8c_ae9b016d10430b4f8e7b58770f522f8be}} 
+\index{main.c@{main.c}!printUsage@{printUsage}}
+\index{printUsage@{printUsage}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{printUsage()}{printUsage()}}
+{\footnotesize\ttfamily void print\+Usage (\begin{DoxyParamCaption}\item[{char $\ast$}]{program\+Name }\end{DoxyParamCaption})}
+
+
+
+Prints the usage of the program. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em program\+Name} & The name of the program as a char pointer. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{main_8c_a15b16453216ed29570af03009e7c7c63}\label{main_8c_a15b16453216ed29570af03009e7c7c63}} 
+\index{main.c@{main.c}!worker@{worker}}
+\index{worker@{worker}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{worker()}{worker()}}
+{\footnotesize\ttfamily void $\ast$ worker (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+
+
+
+worker life cycle 
+
+The worker function for the merge sort algorithm.
+
+This function is the life cycle of a worker thread. It gets an unsorted array from the unsorted fifo and sorts it using the merge sort algorithm. Then it pushes the sorted array in the sorted fifo. After all threads have finished sorting, they merge the sorted subarrays back together. The id of the thread determines at each step if it should merge 2 of the arrays. The process ends when the original array is sorted and merged back together. 
+\begin{DoxyParams}{Parameters}
+{\em arg} & A pointer to the \mbox{\hyperlink{structWorkerArgs}{Worker\+Args}} structure. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+NULL 
+\end{DoxyReturn}

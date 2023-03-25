@@ -11,45 +11,38 @@
 #define SHAREGION_H
 
 /**
- * @brief Initializes the shared region
+ * @brief Initializes the shared region and the fifos with the specified buffer size and file name.
  * 
- * @param arraySize  Size of the array
- * @param filename  Name of the file
+ * @param buffersize The size of the FIFO buffers.
+ * @param filename The name of the file to be processed.
  */
-void initializeSharedRegion(int arraySize, char *filename);
+int initializeSharedRegion(int arraySize, char *filename);
+
+
 
 /**
- * @brief Prints an array
+ * @brief Returns the file name of the shared region.
  * 
- * @param array  Pointer to the array
- * @param size  Size of the array
- */
-void printarray(int *array, int size);
-
-/**
- * @brief Frees memory allocated for the shared region
- * 
- */
-void freeSharedRegion();
-
-/**
- * @brief Gets the file name
- * 
- * @return char*  Pointer to the file name
+ * @return The file name as a char pointer.
  */
 char *getFileName();
 
 /**
- * @brief Get the Fifo Unsorted object
+ * @brief Returns the pointer to the fifo_unsorted structure.
  * 
- * @return fifo_t* Pointer to the unsorted fifo
+ * @return A pointer to the fifo_unsorted structure.
  */
 fifo_t *getFifoUnsorted();
 /**
- * @brief Get the Fifo Sorted object
+ * @brief Returns the pointer to the fifo_sorted structure.
  * 
- * @return fifo_t* Pointer to the sorted fifo
+ * @return A pointer to the fifo_sorted structure.
  */
 fifo_t *getFifoSorted();
+
+/**
+ * @brief Frees the memory allocated for the shared region.
+ */
+int freeSharedRegion();
 
 #endif /* SHAREGION_H */
