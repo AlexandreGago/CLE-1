@@ -43,9 +43,8 @@ int main(int argc, char *argv[]) {
     int nThreads = MAXTHREADS;
     int opt;
 
-    //time the total timeof the program
-    clock_t start, end;
-    double cpu_time_used;
+    //time variables
+    struct timespec start_time, end_time;
 
     do
     {
@@ -101,7 +100,11 @@ int main(int argc, char *argv[]) {
         files[i-optind] = argv[i];
     }
 
-    start = clock();
+    if (clock_gettime(CLOCK_MONOTONIC, &start_time) == -1) {
+        perror("clock_gettime");
+        return 1;
+    }
+
     //initialize the shared region
     initializeSharedRegion(files, argc-optind);
 
@@ -128,15 +131,18 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
+        perror("clock_gettime");
+        return 1;
+    }
     //print results
     printFilesData();
 
     // free shared region
     freeSharedRegion();
     
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("\nTotal time: %f seconds\n", cpu_time_used);
+    double elapsed_time = (double) (end_time.tv_sec - start_time.tv_sec) + (double) (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+    printf("Time elapsed: %f seconds\n", elapsed_time); 
 
 }
 

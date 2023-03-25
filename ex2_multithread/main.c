@@ -25,7 +25,7 @@ void printUsage(char *programName) {
 }
 int main(int argc, char *argv[]) {
 
-    int start, end;
+    struct timespec start_time, end_time;
     int opt;
 
     do
@@ -66,7 +66,10 @@ int main(int argc, char *argv[]) {
     }
     char *fileName = argv[optind];
 
-    start = clock();
+    if (clock_gettime(CLOCK_MONOTONIC, &start_time) == -1) {
+        perror("clock_gettime");
+        return 1;
+    }
 
     //initialize the shared region and the fifos
     initializeSharedRegion(fifoSize,fileName); 
@@ -126,6 +129,15 @@ int main(int argc, char *argv[]) {
         free(array1.array);
         free(array2.array);
     }
+
+
+
+    if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
+        perror("clock_gettime");
+        return 1;
+    }
+
+
     array_t array3 = fifo_pop(getFifoSorted());
     //check if array3 is sorted in crescent order
     bool crescent = true;
@@ -145,9 +157,8 @@ int main(int argc, char *argv[]) {
     // free(fifo_unsorted);
     // free(fifo_sorted);
 
-    end = clock();
-    float cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time elapsed: %f seconds\n", cpu_time_used);
+    double elapsed_time = (double) (end_time.tv_sec - start_time.tv_sec) + (double) (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+    printf("Time elapsed: %f seconds\n", elapsed_time);
     printf("All threads finished\n");
     return 0;
 }
