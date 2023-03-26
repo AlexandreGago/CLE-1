@@ -1,9 +1,9 @@
 /**
  *  \file textProcessing.h (header file)
  *
- *  \brief Problem name: Text Processing.
- *
- *  Problem simulation parameters.
+ * @brief Problem name: Text Processing in Portuguese
+ * Text Processing functions, used to count the number of words and vowels in a given chunk of text.
+ * Also used to read a chunk from a file.
  *
  *  \author Alexandre Gago  - March 2023
  *  \author Bernardo Kaluza - March 2023

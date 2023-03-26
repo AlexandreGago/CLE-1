@@ -5,7 +5,8 @@
  *
  *  Problem simulation parameters.
  *
- *  \author Alexandre Gago and Bernado Kaluza - March 2023
+ *  \author Alexandre Gago 
+ *  \author Bernardo Kaluza
  */
 
 #ifndef PROBCONST_H_

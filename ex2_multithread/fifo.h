@@ -1,6 +1,8 @@
 /**
- * @file fifo.h
- * @brief Thread-safe FIFO implementation with array_t
+ * @file fifo.h (header file for fifo.c)
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
+ * @brief Thread-safe FIFO implementation for array_t
  */
 
 #ifndef FIFO_H

@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
     }
 
     //free the shared region
-    if(freeSharedRegion()){
+    if(freeSharedRegion() != 0){
         printf("Error freeing shared region\n");
         exit(EXIT_FAILURE);
     }

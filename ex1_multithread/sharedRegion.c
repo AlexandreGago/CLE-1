@@ -1,9 +1,8 @@
 /**
  * @file sharedRegion.c
- * @author your name (you@domain.com)
- * @brief 
- * @version 0.1
- * @date 2023-03-20
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
+ * @brief   Functions to manage a shared region used by multiple threads.
  * 
  * 
  */
@@ -14,6 +13,14 @@ struct FileData *filesData;
 int totalFiles = 0;
 pthread_mutex_t lockGetData, lockSaveData;
 
+
+/**
+ * @brief 
+ * Function that serves to initializa the shared region allocating memory for the filesData array
+ * @param files Name of the files to process
+ * 
+ * @param numFiles Total number of the files given
+ */
 int initializeSharedRegion(char **files, int numFiles) {
     //allocate memory for the shared region
     filesData = (struct FileData *) malloc(numFiles * sizeof(struct FileData));
@@ -58,6 +65,10 @@ int initializeSharedRegion(char **files, int numFiles) {
 ;
 }
 
+/**
+ * @brief 
+ * Funtion that serves to print the data of the filesData array
+ */
 void printFilesData() {
     //print the shared region data 
     for (int i = 0; i < totalFiles; i++) {
@@ -76,9 +87,12 @@ void printFilesData() {
             printf("%4d %4d %4d %4d %4d %4d\n", filesData[i].nVowels[0], filesData[i].nVowels[1], filesData[i].nVowels[2], filesData[i].nVowels[3], filesData[i].nVowels[4], filesData[i].nVowels[5]);
         }
     }
-    printf("-------------------------------");
+    printf("-------------------------------\n");
 }
-
+/**
+ * @brief 
+ * Funtion that serves to free the memory allocated in the shared region
+ */
 int freeSharedRegion() {
     //free the shared region
     //close all files
@@ -101,7 +115,11 @@ int freeSharedRegion() {
     }
     return 1;
 }
-
+/**
+ * @brief 
+ * Funtion that serves to check if all the files have been processed
+ * @return int 
+ */
 int allFilesFinished() {
     //check if all files are finished
     //lock the shared region
@@ -124,7 +142,11 @@ int allFilesFinished() {
     }
     return allFinished;
 }
-
+/**
+ * @brief get the a chunk of data from a file and store it in the chunk struct
+ * 
+ * @param chunk 
+ */
 int getData(struct Chunk *fileChunk) {
     //lock the shared region to get data
     if (pthread_mutex_lock(&lockGetData)) {
@@ -158,7 +180,11 @@ int getData(struct Chunk *fileChunk) {
     }
     return 0;
 }
-
+/**
+ * @brief 
+ * Save the results of the processing of a chunk in the filesData array
+ * @param chunk chunk containing the data to be saved
+ */
 int saveResults(struct Chunk *chunk) {
     //lock the shared region to save data
     if (pthread_mutex_lock(&lockSaveData)) {
@@ -178,7 +204,12 @@ int saveResults(struct Chunk *chunk) {
     }
     return 0;
 }
-
+/**
+ * @brief 
+ * Set a File in the filesData array as finished and corrupt
+ * @param FileId 
+ * ID of the file to be set as finished and corrupt
+ */
 void SignalCorruptFile(int FileId){
     //lock the shared region to save data
     if (pthread_mutex_lock(&lockGetData)) {

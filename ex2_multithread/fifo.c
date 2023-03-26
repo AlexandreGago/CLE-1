@@ -3,7 +3,6 @@
  * @author Bernardo Kaluza
  * @author Alexandre Gago
  * @brief Thread-safe FIFO implementation for array_t
- * @date 2023-03-25
  */
 
 

@@ -1,10 +1,10 @@
 /**
- * @file merge.h (header file)
- * @brief Text processing functions
- * 
- * @author Bernardo Kaluza 97521
- * @author Alexandre Gago 98123
+ * @file merge.h (header file for merge.c)
+ * @brief Functions to perform iterative merge sort.
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
  */
+
 
 #include <stdio.h>
 #include <stdlib.h>

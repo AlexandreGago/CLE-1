@@ -1,5 +1,5 @@
 /**
- * @file shared_region.c
+ * @file sharedRegion.c
  * @brief Functions to manage a shared region used by multiple threads.
  * @author Bernardo Kaluza
  * @author Alexandre Gago
@@ -33,7 +33,7 @@ int initializeSharedRegion(int buffersize, char *filename) {
     fifo_init(fifo_sorted, buffersize);
     fileName = (char *)malloc(strlen(filename) + 1);
     strcpy(fileName, filename);
-    return 1;
+    return 0;
 }
 
 /**

@@ -3,6 +3,8 @@
  * @author Bernardo Kaluza 97521
  * @author Alexandre Gago 98123
  * @brief Problem name: Text Processing in Portuguese
+ * Text Processing functions, used to count the number of words and vowels in a given chunk of text.
+ * Also used to read a chunk from a file.
  * 
  */
 
@@ -12,8 +14,16 @@
 #include "sharedRegion.h"
 #include "textProcessing.h"
 
+//use chunkSize provided by main
 extern int chunkSize;
 
+/**
+ * @brief Get the decimal codepoint of the utf 8 character
+ * 
+ * @param buffer the buffer of bytes to read from
+ * @param index the index of the buffer to start reading on
+ * @return int the decimal codepoint of the utf 8 character
+ */
 int getChar(unsigned char *buffer, int *index) {
     int c;
     //check if first bit is 0

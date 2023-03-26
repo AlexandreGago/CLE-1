@@ -1,3 +1,11 @@
+/**
+ * @file sharedRegion.c
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
+ * @brief   Functions to manage a shared region used by multiple threads.
+ * 
+ * 
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -34,7 +42,7 @@ struct FileData
 
 /**
  * @brief 
- *  Structure containing a chunk of a file 
+ *  Structure containing a chunk of a file, the number of words on the chunk and the number of words with each vowel 
  */
 struct Chunk
 {

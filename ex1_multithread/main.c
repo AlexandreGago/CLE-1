@@ -133,11 +133,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //stop the timer
-    if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
-        perror("clock_gettime");
-        exit(1);
-    }
     //print results
     printFilesData();
 
@@ -147,6 +142,11 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     
+    //stop the timer
+    if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1) {
+        perror("clock_gettime");
+        exit(1);
+    }
     double elapsed_time = (double) (end_time.tv_sec - start_time.tv_sec) + (double) (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
     printf("Time elapsed: %f seconds\n", elapsed_time); 
 }
@@ -158,7 +158,6 @@ int main(int argc, char *argv[]) {
  * @return void* 
  */
 void *worker(void *ID) {
-
     //save the id of the thread
     int *id = ID;
     //create a chunk to work with

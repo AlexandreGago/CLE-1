@@ -1,10 +1,10 @@
 /**
  * @file sharedRegion.h (header file)
- * @brief Text processing functions
- * 
- * @author Bernardo Kaluza 97521
- * @author Alexandre Gago 98123
+ * @brief Functions to manage a shared region used by multiple threads.
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
  */
+
 #include "fifo.h"
 
 #ifndef SHAREDREGION_H
