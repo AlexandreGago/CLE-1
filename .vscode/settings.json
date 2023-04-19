@@ -6,6 +6,8 @@
         "pthread.h": "c",
         "stdbool.h": "c",
         "fifo.h": "c",
-        "getopt.h": "c"
+        "getopt.h": "c",
+        "structs.h": "c",
+        "stdio.h": "c"
     }
 }
