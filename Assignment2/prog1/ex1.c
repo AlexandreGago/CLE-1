@@ -14,25 +14,22 @@ int allFilesDone();
 int initializeDistributor(char **files, int numFiles,FileData *filesData);
 int clearChunk(Chunk *chunk);
 
-int chunkSize = 4096;
+int chunkSize;
 
 int main (int argc, char *argv[]){
     int rank;
     int size;
     int opt;
-    int chunkSize;
-    char data[ChunkSize];
-
     MPI_Init (&argc, &argv);
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
     MPI_Comm_size (MPI_COMM_WORLD, &size);
     MPI_Status status;
 
-    MPI_Request request;
+    // MPI_Request request;
 
     if (rank == 0){//dispacher Non-blocking send and receive
 
-        //parse command line arguments
+        //*parse command line arguments
         do
         {
             switch (opt = getopt(argc, argv, "s:h"))
@@ -75,7 +72,7 @@ int main (int argc, char *argv[]){
         for (int i = optind; i < argc; i++) {
             files[i-optind] = argv[i];
         }
-        //END parse command line arguments
+        //*END parse command line arguments
 
 
         printf ("dispacher initiated \n");
@@ -132,6 +129,10 @@ int main (int argc, char *argv[]){
                 return -1;
             }
 
+            //*Debug
+            printf("Read %d bytes from file %s", n, filesData[0].name);
+            //*/
+
             chunk.size = n;
 
             // Calculate the size of the buffer needed to hold the Chunk struct
@@ -147,6 +148,7 @@ int main (int argc, char *argv[]){
 
             MPI_Send(buffer, buffer_size, MPI_BYTE, 1, 0, MPI_COMM_WORLD);
         }
+        printf("dispacher finished \n");
         // MPI_Wait(&request, MPI_STATUS_IGNORE);
         // while(1){
         //     if(allFilesDone()){
@@ -171,6 +173,12 @@ int main (int argc, char *argv[]){
 
         recv_buffer = (unsigned char*)malloc(incoming_size);
 
+        //*Debug
+        // printf("Worker %d: Incoming message size: %d\n", rank, incoming_size);
+        // printf("Size of Chunk struct: %ld\n", sizeof(Chunk));
+        // printf("Size of incoming data: %ld\n", incoming_size - sizeof(Chunk));
+        //*/
+
         MPI_Recv(recv_buffer, incoming_size, MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         //?maneira 1
         // Chunk received_chunk;
@@ -178,29 +186,47 @@ int main (int argc, char *argv[]){
         // memcpy(&received_chunk, recv_buffer, header_size);
 
         // // Allocate memory for the data field and copy its contents
-        // received_chunk.data = (unsigned char*)malloc(received_chunk.size);
-        // memcpy(received_chunk.data, recv_buffer + header_size, received_chunk.size);
+        // received_chunk.data = malloc(incoming_size - header_size + 1); // allocate space for null terminator
+        // memcpy(received_chunk.data, recv_buffer + header_size, incoming_size - header_size); // copy data
+        // // received_chunk.data[incoming_size - header_size] = '\0'; // set null terminator
 
-        //?maneira 2
+        //?maneira 2 - mais intuitiva, idk which is better 
         Chunk* received_chunk = (Chunk*)recv_buffer;
         // Allocate a separate buffer for the data field
-        unsigned char* data_buffer = (unsigned char*)malloc(received_chunk->size);
+        unsigned char* data_buffer = (unsigned char*)malloc(received_chunk->size+1);
 
         // Copy the data field from the receive buffer to the data buffer
         memcpy(data_buffer, recv_buffer + sizeof(Chunk), received_chunk->size);
+        //null terminate the data buffer
+        data_buffer[received_chunk->size] = '\0';
 
         // Set the data field of the received_chunk to point to the data buffer
         received_chunk->data = data_buffer;
 
-        //print all chunk fields
+
+        //Process the chunk
+        if (processChunk(received_chunk) != EXIT_SUCCESS) {
+            printf("Error processing chunk \n");
+            exit(EXIT_FAILURE);
+        }
+
+        //*DEBUG
+        // print all chunk fields
         printf("FileId: %d\n", received_chunk->FileId);
         printf("size: %d\n", received_chunk->size);
         printf("nWords: %d\n", received_chunk->nWords);
         for (int i = 0; i < 6; i++) {
             printf("nVowels[%d]: %d\n", i, received_chunk->nVowels[i]);
         }
-        printf("data: %s\n", received_chunk->data);
+        // printf("data: %s\n", received_chunk->data);
+        //*/
 
+        //Send the chunk back to the dispatcher
+        
+
+    }
+    else{
+        printf("worker %d initiated\n", rank);
     }
 
     MPI_Finalize ();

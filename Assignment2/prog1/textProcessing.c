@@ -287,6 +287,7 @@ int readToChunk( FileData *fileData,  Chunk *fileChunk) {
                     for (int i = copy; i < chunkSize; i++) {
                         fileChunk->data[i] = 0;
                     }
+                    printf("read %d bytes from file %s \n", n, fileData->name);
                     return n;
                 } else {
                     n--;
