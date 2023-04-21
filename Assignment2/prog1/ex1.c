@@ -9,6 +9,8 @@
 #include "textProcessing.h"
 
 void processcmd(int argc, char* argv[]);
+void printFilesData(FileData *filesData, int numFiles);
+int SendtoALL(filesData, &chunk, request, status);
 
 int allFilesDone();
 int initializeDistributor(char **files, int numFiles,FileData *filesData);
@@ -25,7 +27,7 @@ int main (int argc, char *argv[]){
     MPI_Comm_size (MPI_COMM_WORLD, &size);
     MPI_Status status;
 
-    // MPI_Request request;
+    MPI_Request request;
 
     if (rank == 0){//dispacher Non-blocking send and receive
 
@@ -74,6 +76,8 @@ int main (int argc, char *argv[]){
         }
         //*END parse command line arguments
 
+        //Broadcast chunk size
+        MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
         printf ("dispacher initiated \n");
         //read data from file
@@ -90,6 +94,7 @@ int main (int argc, char *argv[]){
             printf("Error initializing the distributor \n");
             exit(1);
         }
+        //*DEBUG
         //print filesdata fields
         // for (int i = 0; i < argc-optind; i++) {
         //     printf("id: %d\n", filesData[i].id);
@@ -103,18 +108,13 @@ int main (int argc, char *argv[]){
         //     }
         // }
         //send data to workers
+        //*/
 
         Chunk chunk;
-        //malloc the buffer
-        if ((chunk.data = malloc(chunkSize)) == NULL) {
-            printf("Error allocating memory for Chunk\n");
-            exit(EXIT_FAILURE);
-        }
-        if (memset(chunk.data, 0, chunkSize) == NULL) {
-            printf("Error clearing memory in Chunk\n");
-            exit(EXIT_FAILURE);
-        }
-
+        unsigned char data_buffer[chunkSize]; // allocate data_buffer on the stack
+        chunk.data = data_buffer; // set the data pointer to point to the stack-allocated buffer
+        
+        SendtoALL(filesData, &chunk, request, status);
         for (int i = 1; i < 2; i++){
             //!cut this into functions
             //clear the chunk
@@ -146,9 +146,35 @@ int main (int argc, char *argv[]){
             memcpy(buffer + sizeof(Chunk), chunk.data, chunk.size);
 
 
-            MPI_Send(buffer, buffer_size, MPI_BYTE, 1, 0, MPI_COMM_WORLD);
+            MPI_Isend(buffer, buffer_size, MPI_BYTE, 1, 0, MPI_COMM_WORLD, &request);
+        }
+
+        //receive data from workers
+        int flag = 0;
+        int flag2=1;
+        while (flag2) {
+            printf("dispacher waiting \n");
+            // Check for incoming messages
+            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+
+            if (flag) {
+                // A message is available, receive it
+                MPI_Recv(&chunk, sizeof(Chunk), MPI_BYTE, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, &status);
+                                
+                filesData[chunk.FileId].nWords += chunk.nWords;
+                //save the number of vowels
+                for (int i = 0; i < 6; i++) {
+                    filesData[chunk.FileId].nVowels[i] += chunk.nVowels[i];
+                }
+                // Clear the chunk for reuse
+                clearChunk(&chunk);
+                flag2=0;
+                
+            }
         }
         printf("dispacher finished \n");
+        printFilesData(filesData, argc-optind);
+
         // MPI_Wait(&request, MPI_STATUS_IGNORE);
         // while(1){
         //     if(allFilesDone()){
@@ -158,8 +184,10 @@ int main (int argc, char *argv[]){
     }
 
     //change to > 0
-    else if (rank ==1){//workers use blocking sends and receives
+    else if (rank > 0){//workers use blocking sends and receives
         printf("worker %d initiated\n", rank);
+        //receive chunk size
+        MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
         // Declare a buffer to hold the received data
         unsigned char* recv_buffer = NULL;
@@ -180,24 +208,18 @@ int main (int argc, char *argv[]){
         //*/
 
         MPI_Recv(recv_buffer, incoming_size, MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        //?maneira 1
-        // Chunk received_chunk;
-        // int header_size = sizeof(Chunk);
-        // memcpy(&received_chunk, recv_buffer, header_size);
 
-        // // Allocate memory for the data field and copy its contents
-        // received_chunk.data = malloc(incoming_size - header_size + 1); // allocate space for null terminator
-        // memcpy(received_chunk.data, recv_buffer + header_size, incoming_size - header_size); // copy data
-        // // received_chunk.data[incoming_size - header_size] = '\0'; // set null terminator
 
-        //?maneira 2 - mais intuitiva, idk which is better 
+        //?maneira 3 - Stack, 
         Chunk* received_chunk = (Chunk*)recv_buffer;
-        // Allocate a separate buffer for the data field
-        unsigned char* data_buffer = (unsigned char*)malloc(received_chunk->size+1);
+
+        // Declare a fixed-size buffer for the data field
+        unsigned char data_buffer[chunkSize+1];
 
         // Copy the data field from the receive buffer to the data buffer
         memcpy(data_buffer, recv_buffer + sizeof(Chunk), received_chunk->size);
-        //null terminate the data buffer
+
+        // Null terminate the data buffer
         data_buffer[received_chunk->size] = '\0';
 
         // Set the data field of the received_chunk to point to the data buffer
@@ -212,17 +234,22 @@ int main (int argc, char *argv[]){
 
         //*DEBUG
         // print all chunk fields
-        printf("FileId: %d\n", received_chunk->FileId);
-        printf("size: %d\n", received_chunk->size);
-        printf("nWords: %d\n", received_chunk->nWords);
-        for (int i = 0; i < 6; i++) {
-            printf("nVowels[%d]: %d\n", i, received_chunk->nVowels[i]);
-        }
+        // printf("FileId: %d\n", received_chunk->FileId);
+        // printf("size: %d\n", received_chunk->size);
+        // printf("nWords: %d\n", received_chunk->nWords);
+        // for (int i = 0; i < 6; i++) {
+        //     printf("nVowels[%d]: %d\n", i, received_chunk->nVowels[i]);
+        // }
         // printf("data: %s\n", received_chunk->data);
         //*/
 
         //Send the chunk back to the dispatcher
-        
+        //only need to send results, not text
+        //set data to null
+        received_chunk->data = NULL;
+        MPI_Send(received_chunk, sizeof(Chunk), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+
+
 
     }
     else{
@@ -233,16 +260,50 @@ int main (int argc, char *argv[]){
     return EXIT_SUCCESS;
 }
 
-int allFilesDone(){
-    return 0;
+int SendtoALL(filesData, &chunk, request, status) {
+
+    for (int i = 1; i<size+1; i++) {
+
+        if  (clearChunk(&chunk) != EXIT_SUCCESS) {
+                printf("Error clearing the chunk \n");
+                exit(1);
+        }
+
+        chunk.FileId = filesData[0].id;
+        int n;
+        if ((n = readToChunk(&filesData[0], &chunk))== 0) {
+            printf("Error reading file to chunk \n");
+            return -1;
+        }
+        chunk.size = n;
+
+        // Calculate the size of the buffer needed to hold the Chunk struct
+        int buffer_size = sizeof(Chunk) + chunk.size;
+
+        // Allocate a buffer of the appropriate size
+        unsigned char* buffer = (unsigned char*)malloc(buffer_size);
+
+        // Copy the Chunk struct into the buffer
+        memcpy(buffer, &chunk, sizeof(Chunk));
+        memcpy(buffer + sizeof(Chunk), chunk.data, chunk.size);
+
+        MPI_Isend(buffer, buffer_size, MPI_BYTE, 1, 0, MPI_COMM_WORLD, &request);
+
+    }
 }
+
+
 int clearChunk(Chunk *chunk){
     chunk->size = 0;
     chunk->nWords = 0;
     chunk->FileId = -1;
-    if (memset(chunk->data, 0, chunkSize) == NULL) {
-        printf("Error clearing Chunk\n");
-        exit(EXIT_FAILURE);
+
+    
+    if (chunk->data != NULL) {
+        if (memset(chunk->data, 0, chunkSize) == NULL) {
+            printf("Error clearing Chunk\n");
+            exit(EXIT_FAILURE);
+        }
     }
     for (int j = 0; j < 6; j++) {
         chunk->nVowels[j] = 0;
@@ -259,7 +320,7 @@ int initializeDistributor(char **files, int numFiles, FileData *filesData) {
      //initialize the memory
     memset(filesData, 0, numFiles * sizeof(FileData));
 
-    //initialize the shared region with the data of the files to process
+    //initialize the filesData structure
     for (int i = 0; i < numFiles; i++) {
         filesData[i].id = i;
         filesData[i].name = files[i];
@@ -281,4 +342,25 @@ int initializeDistributor(char **files, int numFiles, FileData *filesData) {
 
 
     return EXIT_SUCCESS;
+}
+
+void printFilesData(FileData *filesData, int totalFiles) {
+    //print the shared region data 
+    for (int i = 0; i < totalFiles; i++) {
+        printf("\n-------------------------------");
+        if (filesData[i].corrupt == 1) {
+            printf("\nFile: %s\n", filesData[i].name);
+            printf("File is invalid/corrupt \n");
+        }
+        else{
+            printf("\nFile: %s\n", filesData[i].name);
+            printf("Number of words: %d\n", filesData[i].nWords);
+            //print vowels with alignment
+            //   a   e   i   o   u   y
+            // 123 123 123 123 123 123
+            printf("%4c %4c %4c %4c %4c %4c\n", 'a', 'e', 'i', 'o', 'u', 'y');
+            printf("%4d %4d %4d %4d %4d %4d\n", filesData[i].nVowels[0], filesData[i].nVowels[1], filesData[i].nVowels[2], filesData[i].nVowels[3], filesData[i].nVowels[4], filesData[i].nVowels[5]);
+        }
+    }
+    printf("-------------------------------\n");
 }

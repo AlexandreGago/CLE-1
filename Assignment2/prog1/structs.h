@@ -39,7 +39,5 @@ typedef struct{
     int nVowels[6];
 }Chunk;
 
-#define ChunkSize 4096
-
 
 #endif  // STRUCTS_H
