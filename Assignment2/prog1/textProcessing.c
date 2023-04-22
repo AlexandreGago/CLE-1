@@ -230,24 +230,28 @@ int processChunk( Chunk *fileChunk) {
     return 0;
 }
 
-int readToChunk( FileData *fileData,  Chunk *fileChunk) {
+int readToChunk( FileData *fileData,  Chunk *fileChunk, int* currentFile) {
     int n = fread(fileChunk->data, 1, chunkSize, fileData->file);
     //if error reading file
     if (n < 0) {
         printf("Error reading file %s, ignoring it \n", fileData->name);
         fileData->finished = 1;
+        (*currentFile)++;
     }
     //if file is at the end we didn't cut words
     if (feof(fileData->file) || n == 0) {
         fileData->finished = 1;
+        (*currentFile)++;
         return n;
     }
     //if after reading we are at the end of file
     if (n == chunkSize) {
         //see if next byte is EOF
+        
         int c = fgetc(fileData->file);
         if (c == EOF) {
             fileData->finished = 1;
+            (*currentFile)++;
             return n;
         } else {
             //go back one byte
@@ -287,7 +291,6 @@ int readToChunk( FileData *fileData,  Chunk *fileChunk) {
                     for (int i = copy; i < chunkSize; i++) {
                         fileChunk->data[i] = 0;
                     }
-                    printf("read %d bytes from file %s \n", n, fileData->name);
                     return n;
                 } else {
                     n--;
@@ -303,6 +306,7 @@ int readToChunk( FileData *fileData,  Chunk *fileChunk) {
     }
     printf("Failed to find a separator, ignoring file %s \n", fileData->name);
     fileData->finished = 1;
+    (*currentFile)++;
     return 0;
 }
 

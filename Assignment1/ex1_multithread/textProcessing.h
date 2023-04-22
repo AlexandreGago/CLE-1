@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "structs.h"
+
 /**
  * @brief Get the decimal codepoint of the utf 8 character
  * 
@@ -59,7 +59,7 @@ void isVowel(int c, bool *vowelInWord, int *nVowels);
  * @param Chunk Struct that contains the data needed to process the chunk
  * It will also be used to store the results of the processing.
  */
-int processChunk( Chunk *fileChunk);
+int processChunk(struct Chunk *fileChunk);
 
 /**
  * @brief Reads a chunk of data from a file and stores it in a Chunk struct
@@ -69,5 +69,5 @@ int processChunk( Chunk *fileChunk);
  * @return int 
  */
 
-int readToChunk( FileData *fileData,  Chunk *fileChunk, int* currentFile);
+int readToChunk(struct FileData *fileData, struct Chunk *fileChunk);
 #endif /* TEXT_PROCESSING_H */

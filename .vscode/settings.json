@@ -8,6 +8,7 @@
         "fifo.h": "c",
         "getopt.h": "c",
         "structs.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "initializer_list": "c"
     }
 }
