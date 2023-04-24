@@ -1,0 +1,16 @@
+
+example:59593 terminated with signal 6 at PC=7f84a8896a7c SP=7ffed854c0c0.  Backtrace:
+/lib/x86_64-linux-gnu/libc.so.6(pthread_kill+0x12c)[0x7f84a8896a7c]
+/lib/x86_64-linux-gnu/libc.so.6(raise+0x16)[0x7f84a8842476]
+/lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x7f84a88287f3]
+/lib/x86_64-linux-gnu/libc.so.6(+0x896f6)[0x7f84a88896f6]
+/lib/x86_64-linux-gnu/libc.so.6(+0xa0d7c)[0x7f84a88a0d7c]
+/lib/x86_64-linux-gnu/libc.so.6(+0xa2ac4)[0x7f84a88a2ac4]
+/lib/x86_64-linux-gnu/libc.so.6(free+0x73)[0x7f84a88a54d3]
+/lib/x86_64-linux-gnu/libfabric.so.1(+0x18999)[0x7f84a8ac3999]
+/lib64/ld-linux-x86-64.so.2(+0x624e)[0x7f84ab2a524e]
+/lib/x86_64-linux-gnu/libc.so.6(+0x45495)[0x7f84a8845495]
+/lib/x86_64-linux-gnu/libc.so.6(on_exit+0x0)[0x7f84a8845610]
+/lib/x86_64-linux-gnu/libc.so.6(+0x29d97)[0x7f84a8829d97]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x80)[0x7f84a8829e40]
+./example(+0x1205)[0x564f1badf205]

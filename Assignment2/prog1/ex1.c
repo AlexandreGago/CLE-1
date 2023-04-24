@@ -25,9 +25,11 @@ int main (int argc, char *argv[]){
     MPI_Init (&argc, &argv);
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
     MPI_Comm_size (MPI_COMM_WORLD, &size);
-    MPI_Status status;
 
     if (rank == 0){//dispacher Non-blocking send and receive
+
+        MPI_Status status;
+
         char **files = (char **) malloc( (argc-optind) * sizeof(char *));
         int currentFile = 0;
         //parse command line
@@ -37,16 +39,6 @@ int main (int argc, char *argv[]){
         MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
         printf ("dispacher initiated \n");
-        fflush(stdout);
-        //read data from file
-        FILE *fp;
-        fp = fopen("./dataSet1/teste.txt", "r");
-        if (fp == NULL){
-            printf("Error opening file  %s \n", "data.txt");
-            MPI_Abort(MPI_COMM_WORLD, 1);
-
-        }
-
         FileData *filesData = (FileData *) malloc( (argc-optind) * sizeof(FileData));
         //initialize the distributor
         if(initializeDistributor(files, argc-optind, filesData) != EXIT_SUCCESS){
@@ -54,24 +46,6 @@ int main (int argc, char *argv[]){
             MPI_Abort(MPI_COMM_WORLD, 1);
 
         }
-        //{
-            //printFilesData(filesData, argc-optind);
-            //*DEBUG
-            //print filesdata fields
-            // for (int i = 0; i < argc-optind; i++) {
-            //     printf("id: %d\n", filesData[i].id);
-            //     printf("name: %s\n", filesData[i].name);
-            //     printf("finished: %d\n", filesData[i].finished);
-            //     printf("corrupt: %d\n", filesData[i].corrupt);
-            //     printf("file: %p\n", filesData[i].file);
-            //     printf("nWords: %d\n", filesData[i].nWords);
-            //     for (int j = 0; j < 6; j++) {
-            //         printf("nVowels[%d]: %d\n", j, filesData[i].nVowels[j]);
-            //     }
-            // }
-            //send data to workers
-            //*/
-            //}
 
 
         Chunk chunk;
@@ -101,12 +75,8 @@ int main (int argc, char *argv[]){
             }
         }
 
-        //test each request to see if it has finished
-        //TODO files finisehd
         int flag;
         int finished = currentFile >= argc-optind;
-        // printf("finished: %d \n", finished);
-        // printf("unprocessedChunks: %d \n", unprocessedChunks);
         fflush(stdout);
         while (!finished || unprocessedChunks > 0) { 
             for (int i = 1; i < size; i++) {
@@ -125,17 +95,6 @@ int main (int argc, char *argv[]){
                             filesData[chunks[i-1].FileId].nVowels[j] += chunks[i-1].nVowels[j];
                         }
 
-                        // //print the received chunk
-                        // printf("dispacher received chunk from worker %d \n", i);
-                        // printf("chunk.FileId: %d \n", chunks[i-1].FileId);
-                        // printf("chunk.nWords: %d \n", chunks[i-1].nWords);
-                        // for (int j = 0; j < 6; j++) {
-                        //     printf("chunk.nVowels[%d]: %d \n", j, chunks[i-1].nVowels[j]);
-                        // }
-                        // // printf("chunk.data: %s \n", chunks[i].data);
-                        // fflush(stdout);
-                        
-
                         if (clearChunk(&chunks[i-1]) != EXIT_SUCCESS){
                             printf("Error clearing chunk \n");
                             MPI_Abort(MPI_COMM_WORLD, 1);
@@ -143,7 +102,6 @@ int main (int argc, char *argv[]){
 
                         if (currentFile < argc-optind){
                             //send a new chunk to the worker
-                            printf("sending chunk to worker %d \n", i);
                             fflush(stdout);
                             SendChunk(filesData, &chunk, i, &currentFile);
                             requests[i-1] = MPI_REQUEST_NULL;
@@ -157,55 +115,52 @@ int main (int argc, char *argv[]){
                 }
             }
         }
-        //send message to workers to finish
- 
-        printf("dispacher finished \n");
-        printFilesData(filesData, argc-optind);
-        MPI_Abort(MPI_COMM_WORLD, 1);
 
-        // MPI_Wait(&request, MPI_STATUS_IGNORE);
-        // while(1){
-        //     if(allFilesDone()){
-        //         break;
-        //     }
-        // }
+        MPI_Status statuses[size-1];
+        //send message to workers to finish
+        printf("dispatcher sending message to workers to finish \n");
+        for (int i = 1; i < size; i++) {
+            MPI_Isend(NULL, 0, MPI_BYTE, i, 999, MPI_COMM_WORLD, &requests[i-1]);
+        }
+
+        //wait for all requests to finish
+        MPI_Waitall(size-1, requests, statuses);
+
+        printFilesData(filesData, argc-optind);
+
+        printf("dispacher exiting \n");
+        MPI_Finalize();
     }
 
-    //change to > 0
     else {//workers use blocking sends and receives
         printf("worker %d initiated\n", rank);
         fflush(stdout);
+        MPI_Status status;
+        int tag, incoming_size;
         //receive chunk size
         MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 
-
         while (1) {
-      
-            
-
             // Declare a buffer to hold the received data
             unsigned char* recv_buffer = NULL;
 
-            // Declare a variable to hold the size of the incoming message
-            int incoming_size;
-
-
-
             // Probe the incoming message to get its size
-            MPI_Probe(0, 0, MPI_COMM_WORLD, &status);
+            MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             MPI_Get_count(&status, MPI_BYTE, &incoming_size);
 
             recv_buffer = (unsigned char*)malloc(incoming_size);
 
             //*Debug
-            // printf("Worker %d: Incoming message size: %d\n", rank, incoming_size);
-            // printf("Size of Chunk struct: %ld\n", sizeof(Chunk));
-            // printf("Size of incoming data: %ld\n", incoming_size - sizeof(Chunk));
             //*/
             
-            MPI_Recv(recv_buffer, incoming_size, MPI_BYTE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+            MPI_Recv(recv_buffer, incoming_size, MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            tag = status.MPI_TAG;
+            if (tag == 999) {
+                // printf("worker %d exiting \n", rank);
+                fflush(stdout);
+                break;            
+            }
 
             //?maneira 3 - Stack, 
             Chunk* received_chunk = (Chunk*)recv_buffer;
@@ -215,11 +170,7 @@ int main (int argc, char *argv[]){
 
             // Copy the data field from the receive buffer to the data buffer
             memcpy(data_buffer, recv_buffer + sizeof(Chunk), received_chunk->size);
-
-            // Null terminate the data buffer
             data_buffer[received_chunk->size] = '\0';
-
-            // Set the data field of the received_chunk to point to the data buffer
             received_chunk->data = data_buffer;
 
 
@@ -230,31 +181,16 @@ int main (int argc, char *argv[]){
 
             }
 
-            //*DEBUG
-            // print all chunk fields
-            // printf("FileId: %d\n", received_chunk->FileId);
-            // printf("size: %d\n", received_chunk->size);
-            // printf("nWords: %d\n", received_chunk->nWords);
-            // for (int i = 0; i < 6; i++) {
-            //     printf("nVowels[%d]: %d\n", i, received_chunk->nVowels[i]);
-            // }
-            // printf("data: %s\n", received_chunk->data);
-            //*/
-
             //Send the chunk back to the dispatcher
             //only need to send results, not text
             //set data to null
             received_chunk->data = NULL;
-            printf( "worker %d finished \n", rank);
             fflush(stdout);
-            printf("worker %d sending chunk \n", rank);
             MPI_Send(received_chunk, sizeof(Chunk), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
         }
 
 
     }
-
-    MPI_Finalize ();
     return EXIT_SUCCESS;
 }
 
@@ -268,15 +204,14 @@ int SendChunk(FileData *filesData, Chunk *chunk, int worker, int* currentFile){
     }
 
     chunk->FileId = filesData[*currentFile].id;
-    printf("currentFile %d \n", *currentFile);
     fflush(stdout);
     
     int n;
+
     if ((n = readToChunk(&filesData[*currentFile], chunk,currentFile)) == 0) {
         printf("Error reading file to chunk \n");
         return -1;
     }
-    printf("READ TO CHUNK %d \n", n);
 
 
     chunk->size = n;
