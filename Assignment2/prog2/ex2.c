@@ -25,7 +25,7 @@ int main (int argc, char *argv[]){
     int *sub_arr;
 
     //if size isn't 2,3,5 or 9, exit
-    if (size != 2 && size != 3 && size != 5 && size != 9){
+    if (size != 2 && size != 4 && size != 8 && size != 1){
         printf("This exercice requires exactly 2,3,5 or 9 processes.\n");
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
@@ -61,48 +61,101 @@ int main (int argc, char *argv[]){
         fclose(f);
         // printf ("dispacher read %d elements from file %s \n", arr_size, filename);
         //send the size of the sub-array to all workers
-        int sub_array_size = arr_size/(size-1);
+        int sub_array_size = arr_size/(size);
         MPI_Bcast(&sub_array_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&arr_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
         
         //send the sub-arrays to the workers
         int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
-        MPI_Scatter(arr, sub_array_size, MPI_INT, sub_arr, sub_arr_size, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Scatter(arr, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+        //!mergeSort part of dispacher
         printf("Scattered\n");
+        //TODO mergeSort()
+        //mergeSort(sub_array, 0, sub_array_size-1);
+
+        // printf("Rank 0 has sub_array: ");
+        // for (int i = 0; i < sub_array_size; i++) {
+        //     printf("%d ", sub_array[i]);
+        // }
+        // printf("\n");
+        // fflush(stdout);
 
         //MPI_GATHER to receive the mergeserted sub-arrays
         int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
         MPI_Gather(&sorted_sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
         printf("Gathered\n");
-        fflush(stdout);
-
+        for (int i = 0; i < sub_array_size; i++) {
+            arr[i] = sub_array[i];
+        }
         printf("dispacher first stage finished \n");
         printf("arr: ");
         for (int i = 0; i < arr_size; i++) {
             printf("%d ", arr[i]);
         }
-
+        printf("\n");
         fflush (stdout);
+        free(sub_array);
+        free(sorted_sub_array);
+
 
         //merge part
-        while (sub_arr_size != arr_size){
-            //send merges
+        while (sub_array_size <= arr_size){
+            sub_array_size = sub_array_size*2;
+            printf ("sidpacher sub_array_size: %d\n", sub_array_size);
+            fflush(stdout);
+            //send the sub-arrays to the workers
+            int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
+            MPI_Scatter(arr, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
 
-            //receive merged
-            sub_arr_size = sub_arr_size*2;
-        }
+            //!mergeSort part of dispacher
+            printf("Scattered\n");
+            //TODO mergeSort()
+            //mergeSort(sub_array, 0, sub_array_size-1);
 
-        printf("dispacher finished \n");
-        MPI_Abort(MPI_COMM_WORLD, 1);
+            // printf("Rank 0 has sub_array: ");
+            // for (int i = 0; i < sub_array_size; i++) {
+            //     printf("%d ", sub_array[i]);
+            // }
+            // printf("\n");
+            fflush(stdout);
+
+            //MPI_GATHER to receive the mergeserted sub-arrays
+            int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
+            MPI_Gather(&sorted_sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+            printf("Gathered\n");
+            for (int i = 0; i < sub_array_size; i++) {
+                arr[i] = sub_array[i];
+            }
+            // printf("dispacher first stage finished \n");
+            // printf("arr: ");
+            // for (int i = 0; i < arr_size; i++) {
+            //     printf("%d ", arr[i]);
+            // }
+
+            fflush (stdout);
+            }
+
+            printf("dispacher finished \n");
+            printf("arr: ");
+            for (int i = 0; i < arr_size; i++) {
+                printf("%d ", arr[i]);
+            }
+            printf("\n");
+            fflush (stdout);
+            MPI_Abort(MPI_COMM_WORLD, 1);
 
     }
 
     else {//workers use blocking sends and receives
         int sub_array_size;
+        int arr_size;
         printf("worker %d initiated\n", rank);
         fflush(stdout);
 
         //! receive the size of the sub-array
         MPI_Bcast(&sub_array_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&arr_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
         // printf("Rank %d received sub-array size: %d\n", rank, sub_array_size);
         //mergeSort part
         int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
@@ -120,20 +173,38 @@ int main (int argc, char *argv[]){
         //send the sub-array back
         MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
         free(sub_array);
+        while(1){//merge part
+            printf("worker %d entered while sub_array_size: %d\n", rank, sub_array_size);
+            fflush(stdout);
+            sub_array_size = sub_array_size*2;
+            //if rank is superior or equal to the number of sub-arrays, exit (32/32 = 1; the only worker would be the dispacher so the worker needes to exit)
+            if (rank >= (arr_size/sub_array_size)){
+                printf ("Rank %d is superior to the number of sub-arrays, exiting sub_size: %d arr_size: %d \n", rank, sub_array_size, arr_size);
+                fflush(stdout);
+                int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
+                MPI_Scatter(NULL, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+                MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+            }
+            else{
+                int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
 
-        // while(1){//merge part
-        //     //! receive the size of the sub-array
-        //     MPI_Bcast(&sub_array_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        //     int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
-        //     //receive the sub-array
-        //     MPI_Scatter(NULL, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
-        //     //merge
-        //     //send the merged sub-array
+                //receive the sub-array
+                MPI_Scatter(NULL, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+                //TODO merge
+                //mergeSort(sub_array, 0, sub_array_size-1);
+                fflush(stdout);
+                printf("Rank %d has sub_array: ", rank);
+                for (int i = 0; i < sub_array_size; i++) {
+                    printf("%d ", sub_array[i]);
+                }
+                printf("\n");
+                fflush(stdout);
+                //send the merged sub-array
+                MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+                free(sub_array);
+            }
 
-        //     free(sub_array);
-        // }
-        printf("\n");
-
+        }
     }
 
     MPI_Finalize ();
