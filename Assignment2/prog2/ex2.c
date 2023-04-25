@@ -82,12 +82,17 @@ int main (int argc, char *argv[]){
         // fflush(stdout);
 
         //MPI_GATHER to receive the mergeserted sub-arrays
-        int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
-        MPI_Gather(&sorted_sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
-        printf("Gathered\n");
+        //print sub-arrays
         for (int i = 0; i < sub_array_size; i++) {
-            arr[i] = sub_array[i];
+            printf("rank 0: %d ", sub_array[i]);
         }
+        fflush(stdout);
+        int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
+        MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+        printf("Gathered\n");
+        // for (int i = 0; i < sub_array_size; i++) {
+        //     arr[i] = sub_array[i];
+        // }
         printf("dispacher first stage finished \n");
         printf("arr: ");
         for (int i = 0; i < arr_size; i++) {
@@ -121,12 +126,9 @@ int main (int argc, char *argv[]){
             fflush(stdout);
 
             //MPI_GATHER to receive the mergeserted sub-arrays
-            int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
-            MPI_Gather(&sorted_sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
             printf("Gathered\n");
-            for (int i = 0; i < sub_array_size; i++) {
-                arr[i] = sub_array[i];
-            }
+
             // printf("dispacher first stage finished \n");
             // printf("arr: ");
             // for (int i = 0; i < arr_size; i++) {
@@ -182,6 +184,7 @@ int main (int argc, char *argv[]){
                 printf ("Rank %d is superior to the number of sub-arrays, exiting sub_size: %d arr_size: %d \n", rank, sub_array_size, arr_size);
                 fflush(stdout);
                 int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
+                //TODO SEND NOTHING
                 MPI_Scatter(NULL, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
                 MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
             }
