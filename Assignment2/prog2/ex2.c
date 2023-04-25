@@ -88,6 +88,9 @@ int main (int argc, char *argv[]){
         for (int i = 0; i < sub_array_size; i++) {
             printf("%d ", sub_array[i]);
         }
+        for (int i = 0; i < sub_array_size; i++) {
+                    sub_array[i] = rank;
+                }
         fflush(stdout);
         int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
         MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
@@ -127,16 +130,21 @@ int main (int argc, char *argv[]){
             // }
             // printf("\n");
             fflush(stdout);
-
+            for (int i = 0; i < sub_array_size; i++) {
+                    sub_array[i] = rank;
+                }
             //MPI_GATHER to receive the mergeserted sub-arrays
             MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
             printf("##############Gathered##################\n");
-
+            printf("arr: ");
+            for (int i = 0; i < arr_size; i++) {
+                printf("%d ", arr[i]);
+            }
             fflush (stdout);
             }
 
             printf("dispacher finished \n");
-            printf("arr: ");
+            printf("arr final: ");
             for (int i = 0; i < arr_size; i++) {
                 printf("%d ", arr[i]);
             }
@@ -164,6 +172,9 @@ int main (int argc, char *argv[]){
         for (int i = 0; i < sub_array_size; i++) {
             printf("%d ", sub_array[i]);
         }
+        for (int i = 0; i < sub_array_size; i++) {
+                    sub_array[i] = rank;
+                }
         printf("\n");
         fflush(stdout);
 
@@ -180,6 +191,10 @@ int main (int argc, char *argv[]){
                 fflush(stdout);
                 int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
                 //TODO SEND NOTHING
+                //put sub.-array to NULL
+                for (int i = 0; i < sub_array_size; i++) {
+                    sub_array[i] = rank;
+                }
                 MPI_Scatter(NULL, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
                 MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
             }
@@ -194,6 +209,9 @@ int main (int argc, char *argv[]){
                 printf("Rank %d has sub_array: ", rank);
                 for (int i = 0; i < sub_array_size; i++) {
                     printf("%d ", sub_array[i]);
+                }
+                for (int i = 0; i < sub_array_size; i++) {
+                    sub_array[i] = rank;
                 }
                 printf("\n");
                 fflush(stdout);
