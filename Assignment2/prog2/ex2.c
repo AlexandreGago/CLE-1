@@ -70,7 +70,8 @@ int main (int argc, char *argv[]){
         MPI_Scatter(arr, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
 
         //!mergeSort part of dispacher
-        printf("Scattered\n");
+        printf("####################Scattered merge sort #######################\n");
+        fflush(stdout);
         //TODO mergeSort()
         //mergeSort(sub_array, 0, sub_array_size-1);
 
@@ -83,13 +84,15 @@ int main (int argc, char *argv[]){
 
         //MPI_GATHER to receive the mergeserted sub-arrays
         //print sub-arrays
+        printf("rank 0 has sub_array: ");
         for (int i = 0; i < sub_array_size; i++) {
-            printf("rank 0: %d ", sub_array[i]);
+            printf("%d ", sub_array[i]);
         }
         fflush(stdout);
         int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
         MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
-        printf("Gathered\n");
+        printf("#################Gathered merge sort#################3\n");
+        fflush(stdout);
         // for (int i = 0; i < sub_array_size; i++) {
         //     arr[i] = sub_array[i];
         // }
@@ -105,7 +108,7 @@ int main (int argc, char *argv[]){
 
 
         //merge part
-        while (sub_array_size <= arr_size){
+        while (sub_array_size < arr_size){
             sub_array_size = sub_array_size*2;
             printf ("sidpacher sub_array_size: %d\n", sub_array_size);
             fflush(stdout);
@@ -114,7 +117,7 @@ int main (int argc, char *argv[]){
             MPI_Scatter(arr, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
 
             //!mergeSort part of dispacher
-            printf("Scattered\n");
+            printf("#####################Scattered %d #########################\n", sub_array_size);
             //TODO mergeSort()
             //mergeSort(sub_array, 0, sub_array_size-1);
 
@@ -127,13 +130,7 @@ int main (int argc, char *argv[]){
 
             //MPI_GATHER to receive the mergeserted sub-arrays
             MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
-            printf("Gathered\n");
-
-            // printf("dispacher first stage finished \n");
-            // printf("arr: ");
-            // for (int i = 0; i < arr_size; i++) {
-            //     printf("%d ", arr[i]);
-            // }
+            printf("##############Gathered##################\n");
 
             fflush (stdout);
             }
@@ -145,8 +142,6 @@ int main (int argc, char *argv[]){
             }
             printf("\n");
             fflush (stdout);
-            MPI_Abort(MPI_COMM_WORLD, 1);
-
     }
 
     else {//workers use blocking sends and receives
@@ -175,7 +170,7 @@ int main (int argc, char *argv[]){
         //send the sub-array back
         MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
         free(sub_array);
-        while(1){//merge part
+        while(sub_array_size < arr_size){//merge part
             printf("worker %d entered while sub_array_size: %d\n", rank, sub_array_size);
             fflush(stdout);
             sub_array_size = sub_array_size*2;
