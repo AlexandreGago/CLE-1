@@ -75,12 +75,16 @@ int main (int argc, char *argv[]){
         // mergeSort
         mergeSortItr(sub_array, sub_array_size);
 
+        int *sorted_sub_array = (int *)malloc(arr_size * sizeof(int));
+        //copy the sub-array to the sorted_sub_array
+        memcpy(sorted_sub_array, sub_array, sub_array_size * sizeof(int));
 
-        MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Gather(sorted_sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
         
 
 
         free(sub_array);
+        free(sorted_sub_array);
 
 
         //merge part
@@ -98,9 +102,14 @@ int main (int argc, char *argv[]){
             MPI_Scatter(arr, sub_array_size, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
             printf("Scatter after");
             fflush  (stdout);
+            // merge
             mergeItr(sub_array,0,sub_array_size/2-1,sub_array_size-1);
+            int* sorted_sub_array = (int *)malloc(sub_array_size * sizeof(int));
+            //copy the sub-array to the sorted_sub_array
+            memcpy(sorted_sub_array, sub_array, sub_array_size * sizeof(int));
+            //MPI_GATHER to receive the mergeserted sub-arrays
 
-            MPI_Gather(sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Gather(sorted_sub_array, sub_array_size, MPI_INT, arr, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
             printf("#####Gather 2nd time#####");
             fflush  (stdout);
 
@@ -148,7 +157,10 @@ int main (int argc, char *argv[]){
             if (rank >= (arr_size/sub_array_size)){
                 int *sub_array = (int *)malloc(sub_array_size * sizeof(int));
                 //TODO SEND NOTHING
-
+                //put sub.-array to NULL
+                for (int i = 0; i < sub_array_size; i++) {
+                    sub_array[i] = rank;
+                }
                 MPI_Scatter(NULL, 0, MPI_INT, sub_array, sub_array_size, MPI_INT, 0, MPI_COMM_WORLD);
                 printf("Rank %d received sub-array size: %d\n", rank, sub_array_size);
                 MPI_Gather(sub_array, sub_array_size, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
