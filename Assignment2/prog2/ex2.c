@@ -1,26 +1,31 @@
+/**
+ * @file ex2.c
+ * @author Bernardo Kaluza
+ * @author Alexandre Gago
+ * @brief Exercise 2: Parallel merge sort using MPI.
+ */
 #include <mpi.h>
-
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <math.h>
-
 #include <unistd.h>
-
 #include <stdbool.h>
-
 #include <time.h>
-
 #include "merge.h"
 
+/**
+ * @brief 
+ * 
+ * @param argc The number of arguments.
+ * @param argv The arguments.
+ * @return int The exit status.
+ */
 int main(int argc, char * argv[]) {
     MPI_Comm presentComm, nextComm;
     MPI_Group presentGroup, nextGroup;
     int gMemb[8];
     int rank, nProc, nProcNow, length, nIter;
     int i, j;
-
     int err = MPI_Init( & argc, & argv);
     if (err != MPI_SUCCESS) {
         printf("Error initializing MPI\n");
@@ -30,24 +35,33 @@ int main(int argc, char * argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, & rank);
     MPI_Comm_size(MPI_COMM_WORLD, & nProc);
 
+    //check if the number of processes is valid
     if (rank == 0) {
         if (nProc != 1 && nProc != 2 && nProc != 4 && nProc != 8) {
             printf("Wrong number of processes!\n Should be 1, 2, 4 or 8\n");
-            MPI_Finalize();
+            MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
             return EXIT_FAILURE;
         }
         if (argc != 2) {
             printf("Wrong number of arguments!\n Usage: mpirun -n %d %s <input file>\n", nProc, argv[0]);
-            MPI_Finalize();
+            MPI_Abort(MPI_COMM_WORLD,EXIT_FAILURE);
             return EXIT_FAILURE;
         }
     }
 
+    //start the timer
     double start_time = MPI_Wtime();
-    nIter = 32 - __builtin_clz(nProc) ;
+
+    //calculate the number of iterations, by finding where the "1" is in the binary representation of the number of processes
+    //same as log2(nProc)+1
+    nIter = sizeof(int) * 8 - __builtin_clz(nProc) ;
+
+    //int array that will be sent to the processes
     int * sendData;
 
+    //rank 0 will read the file and send the data to the other processes
     if (rank == 0) {
+
         char * filename = argv[1];
         FILE * f;
 
@@ -72,7 +86,7 @@ int main(int argc, char * argv[]) {
         }
 
         //allocate memory for the array
-        sendData = malloc(length * sizeof(int));
+        sendData = calloc(length,sizeof(int));
         if (sendData == NULL) {
             perror("Error allocating memory");
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
@@ -87,14 +101,17 @@ int main(int argc, char * argv[]) {
         };
         fclose(f);
 
+        //broadcast the length of the array
         MPI_Bcast( & length, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     } else {
+        //receive the length of the array
         MPI_Bcast( & length, 1, MPI_INT, 0, MPI_COMM_WORLD);
         sendData = NULL;
     }
 
-    int * recData = malloc(length * sizeof(int));
+    //Its bigger than what is needed until the last iteration
+    int * recData = malloc( length * sizeof(int));
     if (recData == NULL) {
         perror("Error allocating memory");
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
@@ -108,10 +125,13 @@ int main(int argc, char * argv[]) {
         gMemb[i] = i;
     for (j = 0; j < nIter; j++) {
         if (j > 0) {
+            //create new group and communicator with half the processes
             MPI_Group_incl(presentGroup, nProcNow, gMemb, & nextGroup);
             MPI_Comm_create(presentComm, nextGroup, & nextComm);
             presentGroup = nextGroup;
             presentComm = nextComm;
+
+            //if the rank is bigger than the number of processes, it will exit and not participate in the next iteration
             if (rank >= nProcNow) {
                 free(recData);
                 MPI_Finalize();
@@ -122,18 +142,20 @@ int main(int argc, char * argv[]) {
         MPI_Comm_size(presentComm, & nProc);
         MPI_Scatter(sendData, length / nProcNow, MPI_INT, recData, length / nProcNow, MPI_INT, 0, presentComm);
 
+        //first iteration is merge sort, the rest are merge operations
         if (j == 0)
             mergeSortItr(recData, length / nProcNow);
         else
             mergeItr(recData, 0, (length / nProcNow) / 2 - 1, (length / nProcNow) - 1);
 
         MPI_Gather(recData, length / nProcNow, MPI_INT, sendData, length / nProcNow, MPI_INT, 0, presentComm);
+
+        //divide the number of processes by 2
         nProcNow = nProcNow >> 1;
     }
 
     //stop the timer
-    double end_time = MPI_Wtime();
-    double elapsed_time = end_time - start_time;
+    double elapsed_time = MPI_Wtime() - start_time;
 
     //check if the array is sorted
     bool sorted = true;

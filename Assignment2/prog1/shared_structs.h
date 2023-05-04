@@ -1,16 +1,7 @@
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-// #include "structs.c"
-
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
-
-
-
+#include <stdio.h>
 /**
  * @brief 
  * Structure containing id,name and pointer to file and the number of words on the file and the number of words with each vowel

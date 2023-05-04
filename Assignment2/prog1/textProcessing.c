@@ -10,10 +10,10 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "structs.h"
+
+#include "shared_structs.h"
 
 //use chunkSize provided by main
-//!EXTERN IS NOT WORKING
 extern int chunkSize;
 
 /**

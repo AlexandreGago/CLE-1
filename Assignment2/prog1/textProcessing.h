@@ -13,10 +13,8 @@
 #ifndef TEXT_PROCESSING_H
 #define TEXT_PROCESSING_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include "structs.h"
+#include "shared_structs.h"
 /**
  * @brief Get the decimal codepoint of the utf 8 character
  * 

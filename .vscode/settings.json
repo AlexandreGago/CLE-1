@@ -9,6 +9,9 @@
         "getopt.h": "c",
         "structs.h": "c",
         "stdio.h": "c",
-        "initializer_list": "c"
+        "initializer_list": "c",
+        "textprocessing.h": "c",
+        "shared_structs.h": "c",
+        "unistd.h": "c"
     }
 }
