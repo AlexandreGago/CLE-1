@@ -178,11 +178,11 @@ int main(int argc, char * argv[]) {
     if (rank == 0) {
         // printf("Time elapsed: %f seconds\n", elapsed_time);
         //print only the time number
-        // FILE * f = fopen("results.txt", "a");
-        // fprintf(f, "%f\n", elapsed_time);
-        // fclose(f);
+        FILE * f = fopen("results.txt", "a");
+        fprintf(f, "%f\n", elapsed_time);
+        fclose(f);
 
-        printf("Elapsed time is %f\n", elapsed_time);
+        // printf("Elapsed time is %f\n", elapsed_time);
 
     }
 

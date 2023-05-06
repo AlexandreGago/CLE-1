@@ -26,6 +26,6 @@ for idx,file in enumerate(["dataSet2/datSeq256K.bin" ,"dataSet2/datSeq1M.bin" ,"
         res[file][process] = [average, stddev]
 
 #put res in results_final.json
-with open("results_final.json", "w") as f:
+with open("ex2results_final.json", "w") as f:
     json.dump(res, f, indent=4)
     

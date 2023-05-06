@@ -31,14 +31,14 @@ void printFilesData(FileData *filesData, int numFiles);
  */
 int SendChunk(FileData *filesData, Chunk *chunk, int worker, int *currentFile);
 /**
- *@brief Initializes the distributor
+ *@brief Initializes the Dispatcher
  *
  *@param files the array of file names
  *@param numFiles the number of files
  *@param filesData the array of FileData structs
- *@return int  0 if the distributor was initialized successfully
+ *@return int  0 if the Dispatcher was initialized successfully
  */
-int initializeDistributor(char **files, int numFiles, FileData **filesData);
+int initializeDispatcher(char **files, int numFiles, FileData **filesData);
 /**
  *@brief Clears a chunk
  *
@@ -53,6 +53,8 @@ int clearChunk(Chunk *chunk);
  *@param argv  the array of arguments
  */
 void parseCommandLine(int argc, char *argv[], char **files);
+
+#define EXIT_TAG 999
 
 int chunkSize = 4096;
 MPI_Request dummyRequest = MPI_REQUEST_NULL;
@@ -87,9 +89,9 @@ int main(int argc, char *argv[]) {
 	MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	FileData *filesData;
-	// initialize the distributor
-	if (initializeDistributor(files, numFiles, &filesData) != EXIT_SUCCESS) {
-	  printf("Error initializing the distributor \n");
+	// initialize the Dispatcher
+	if (initializeDispatcher(files, numFiles, &filesData) != EXIT_SUCCESS) {
+	  printf("Error initializing the Dispatcher \n");
 	  MPI_Abort(MPI_COMM_WORLD, 1);
 	}
 
@@ -173,7 +175,7 @@ int main(int argc, char *argv[]) {
 	// send message to workers to finish
 	printf("dispatcher sending message to workers to finish \n");
 	for (int i = 1; i < size; i++) {
-	  MPI_Isend(NULL, 0, MPI_BYTE, i, 999, MPI_COMM_WORLD, &requests[i - 1]);
+	  MPI_Isend(NULL, 0, MPI_BYTE, i, EXIT_TAG, MPI_COMM_WORLD, &requests[i - 1]);
 	}
 
 	printFilesData(filesData, numFiles);
@@ -181,10 +183,10 @@ int main(int argc, char *argv[]) {
 	// stop the timer
 	double elapsed_time = MPI_Wtime() - start_time;
 
-	//put elapsed time in results.txt
-	// FILE * f = fopen("results.txt", "a");
-	// fprintf(f, "%f\n", elapsed_time);
-	// fclose(f);
+	// put elapsed time in results.txt
+	FILE * f = fopen("results.txt", "a");
+	fprintf(f, "%f\n", elapsed_time);
+	fclose(f);
 	printf("elapsed time: %f\n", elapsed_time);
 		
 	printf("dispacher exiting \n");
@@ -212,7 +214,7 @@ int main(int argc, char *argv[]) {
 			   MPI_COMM_WORLD, &status);
 	  tag = status.MPI_TAG;
 	  // special tag to finish
-	  if (tag == 999) {
+	  if (tag == EXIT_TAG) {
 		break;
 	  }
 
@@ -292,7 +294,7 @@ int clearChunk(Chunk *chunk) {
   return EXIT_SUCCESS;
 }
 
-int initializeDistributor(char **files, int numFiles, FileData **filesData) {
+int initializeDispatcher(char **files, int numFiles, FileData **filesData) {
   // allocate and initialize the structure that will hold the files data
   *filesData = (FileData*) calloc(numFiles, sizeof(FileData));
   if (*filesData == NULL) {
