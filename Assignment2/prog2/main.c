@@ -1,5 +1,5 @@
 /**
- * @file ex2.c
+ * @file main.c
  * @author Bernardo Kaluza
  * @author Alexandre Gago
  * @brief Exercise 2: Parallel merge sort using MPI.
@@ -176,7 +176,14 @@ int main(int argc, char * argv[]) {
     free(recData);
 
     if (rank == 0) {
-        printf("Time elapsed: %f seconds\n", elapsed_time);
+        // printf("Time elapsed: %f seconds\n", elapsed_time);
+        //print only the time number
+        // FILE * f = fopen("results.txt", "a");
+        // fprintf(f, "%f\n", elapsed_time);
+        // fclose(f);
+
+        printf("Elapsed time is %f\n", elapsed_time);
+
     }
 
     MPI_Finalize();
