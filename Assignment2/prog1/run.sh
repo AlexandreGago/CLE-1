@@ -1,5 +1,5 @@
 #!/bin/bash
-mpicc -Wall -O3 -o ex1 main.c textProcessing.c
+mpicc -Wall -O3 -o ex1 ex1.c textProcessing.c
 rm -f ex1.80s*
 
 

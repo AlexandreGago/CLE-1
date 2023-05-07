@@ -1,5 +1,5 @@
 #!/bin/bash
-mpicc -Wall -O3 -g -o ex2 main.c merge.c
+mpicc -Wall -O3 -g -o ex2 ex2.c merge.c
 rm -f ex2.80s*
 
 # mpirun -n $1 ./ex2 $2

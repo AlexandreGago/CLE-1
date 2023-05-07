@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file ex2.c
  * @author Bernardo Kaluza
  * @author Alexandre Gago
  * @brief Exercise 2: Parallel merge sort using MPI.
@@ -20,12 +20,18 @@
  * @param argv The arguments.
  * @return int The exit status.
  */
+struct timespec start, finish;
+
 int main(int argc, char * argv[]) {
     MPI_Comm presentComm, nextComm;
     MPI_Group presentGroup, nextGroup;
     int gMemb[8];
     int rank, nProc, nProcNow, length, nIter;
     int i, j;
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start); //!TIME
+
+
     int err = MPI_Init( & argc, & argv);
     if (err != MPI_SUCCESS) {
         printf("Error initializing MPI\n");
@@ -48,9 +54,6 @@ int main(int argc, char * argv[]) {
             return EXIT_FAILURE;
         }
     }
-
-    //start the timer
-    double start_time = MPI_Wtime();
 
     //calculate the number of iterations, by finding where the "1" is in the binary representation of the number of processes
     //same as log2(nProc)+1
@@ -154,8 +157,6 @@ int main(int argc, char * argv[]) {
         nProcNow = nProcNow >> 1;
     }
 
-    //stop the timer
-    double elapsed_time = MPI_Wtime() - start_time;
 
     //check if the array is sorted
     bool sorted = true;
@@ -175,18 +176,11 @@ int main(int argc, char * argv[]) {
     free(sendData);
     free(recData);
 
-    if (rank == 0) {
-        // printf("Time elapsed: %f seconds\n", elapsed_time);
-        //print only the time number
-        FILE * f = fopen("results.txt", "a");
-        fprintf(f, "%f\n", elapsed_time);
-        fclose(f);
-
-        // printf("Elapsed time is %f\n", elapsed_time);
-
-    }
-
     MPI_Finalize();
+
+
+	clock_gettime(CLOCK_MONOTONIC_RAW, &finish); //!TIME
+    printf("\nElapsed time = %.6f s\n", (finish.tv_sec - start.tv_sec) / 1.0 + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);
 
     return EXIT_SUCCESS;
 }
